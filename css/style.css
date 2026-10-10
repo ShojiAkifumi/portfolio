@@ -939,18 +939,20 @@ html:not(.ink-masks) .ink-edge {
   opacity: 0.9;
   transform: translate(-50%, -50%) scale(1.15) rotate(0);
 }
+/* 画像は切らずに枠の中央に収める（縦が長い画像は上下の余白が同じになるよう高さで合わせる） */
 .work-card__visual img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: auto;
+  height: auto;
+  max-width: 92%;
+  max-height: 88%;
   transition: transform 1.2s var(--soft);
 }
-.work-card__visual--lp img {
-  width: 92%;
-  margin-top: 4%;
-}
 .work-card__visual--banner img {
-  width: auto;
-  height: 82%;
-  aspect-ratio: 1;
-  object-fit: cover;
+  max-width: 84%;
+  max-height: 82%;
   border-radius: 8px;
   box-shadow: 0 24px 40px -22px rgba(38, 57, 90, 0.45);
 }
