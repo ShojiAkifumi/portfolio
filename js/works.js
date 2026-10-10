@@ -66,10 +66,10 @@
     const cfg = window.SITE_CONFIG || {};
     const list = works.slice(0, cfg.heroWorksCount || 8);
     if (!list.length) return;
-    new Arc(root, list, cfg.heroSpeed == null ? 0.12 : cfg.heroSpeed);
+    new Arc(root, list, cfg.heroInterval || 3600);
   }
 
-  function Arc(root, list, speed) {
+  function Arc(root, list, interval) {
     const stage = root.querySelector('[data-arc-stage]');
     const countEl = root.querySelector('[data-arc-count]');
     const titleEl = root.querySelector('[data-arc-title]');
@@ -161,16 +161,27 @@
       if (titleEl) titleEl.textContent = el._work.title;
     }
 
-    // 常にゆっくり流れ続ける。クリックやドラッグで送った分はなめらかに追いつく
-    let drag = null, moved = false, visible = true, last = 0, raf = 0;
+    // 一定間隔で1枚ずつ送る（PCは上から下へ、タブレット以下は右から左へ）
+    let drag = null, moved = false, visible = true, hover = false, last = 0, raf = 0, timer = 0;
     function frame(t) {
       const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
-      if (!drag && !reduce && !document.hidden) target += speed * dt;
       if (!drag) offset += (target - offset) * (1 - Math.exp(-dt * 4.2));
+      if (Math.abs(target - offset) < 0.0005) offset = target;
       layout(); updateLabel();
       raf = visible ? requestAnimationFrame(frame) : 0;
     }
     const run = () => { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } };
+    const tick = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (!hover && !drag && visible && !document.hidden) target = Math.round(target) + (mode === 'v' ? -1 : 1);
+        tick();
+      }, interval);
+    };
+
+    // カーソルを重ねている間は止める
+    root.addEventListener('mouseenter', () => { hover = true; });
+    root.addEventListener('mouseleave', () => { hover = false; tick(); });
 
     // キーボードで選んだ実績を正面に（マウスのクリックは click 側で処理）
     root.addEventListener('focusin', (e) => {
@@ -184,7 +195,7 @@
       if (!el) return;
       if (moved) { e.preventDefault(); e.stopImmediatePropagation(); return; }
       const p = wrap(items.indexOf(el) - offset);
-      if (Math.abs(p) > 0.5) { e.preventDefault(); e.stopImmediatePropagation(); target += wrap(items.indexOf(el) - target); }
+      if (Math.abs(p) > 0.5) { e.preventDefault(); e.stopImmediatePropagation(); target += wrap(items.indexOf(el) - target); tick(); }
     }, true);
 
     // ドラッグ・スワイプで送る
@@ -205,6 +216,7 @@
       if (!drag) return;
       drag = null;
       target = Math.round(target);
+      tick();
     };
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
@@ -218,6 +230,7 @@
     narrow.addEventListener('change', () => { measure(); layout(); });
 
     measure(); layout(); updateLabel(); run();
+    if (!reduce) tick();
     root.classList.add('is-built');
   }
 
