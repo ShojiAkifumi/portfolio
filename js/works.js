@@ -161,7 +161,8 @@
         cw = cw0 * f;
         R = R0 * f;
         // PCは一番右の実績が画面の右端に収まる位置、タブレットは半円全体が中央に来る位置に正面を置く
-        fx = tablet.matches ? (W - (r - l) * f) / 2 - l * f : W - 12 - r * f;
+        // PCはさらに幅の12%ぶん左へ寄せる（名前側にはみ出さない範囲で）
+        fx = tablet.matches ? (W - (r - l) * f) / 2 - l * f : Math.max(-l * f, W - 12 - r * f - W * 0.12);
         // ラベルを正面の実績のすぐ下に置くための位置
         root.style.setProperty("--front-l", fx - cw / 2 + "px");
         root.style.setProperty("--front-b", H / 2 + (cw * 0.75) / 2 + "px");

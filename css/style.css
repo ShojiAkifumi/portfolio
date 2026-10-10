@@ -153,7 +153,7 @@ html:not(.ink-masks) .ink-edge { display: none; }
 .arc-item--banner .arc-item__in img { border-radius: 6px; }
 .arc-item__in::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: var(--pale, 0); pointer-events: none; }
 .arc-item.is-front:hover .arc-item__in { transform: translateY(-6px); box-shadow: 0 40px 60px -34px rgba(38, 57, 90, .5), 0 0 0 1px rgba(196, 226, 248, .8) inset; }
-.arc__label { position: absolute; z-index: 120; left: calc(var(--front-l, 0px) - 18px); top: calc(var(--front-b, 70%) + 10px); padding: 14px 18px 16px; border-radius: 18px; background: color-mix(in srgb, var(--paper) 80%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; max-width: 300px; font-size: 0.76rem; color: var(--ink-soft); }
+.arc__label { position: absolute; z-index: 120; left: var(--front-l, 0px); top: calc(var(--front-b, 70%) + 10px); padding: 14px 18px 16px; border-radius: 18px; background: color-mix(in srgb, var(--paper) 80%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; max-width: 300px; font-size: 0.76rem; color: var(--ink-soft); }
 .arc__tag { font-family: var(--font-en); font-weight: 700; letter-spacing: 0.24em; color: var(--gray); display: inline-flex; align-items: baseline; gap: 8px; }
 .arc__tag small { font-family: var(--font-body); font-weight: 500; font-size: 0.7rem; letter-spacing: 0.12em; }
 .arc__count { font-family: var(--font-en); font-weight: 600; letter-spacing: 0.1em; color: var(--blue); }
