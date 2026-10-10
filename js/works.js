@@ -69,7 +69,7 @@
   }
 
   /* ---------- ファーストビューの実績スライダー ----------
-     PC: 右端に半円を描いて縦に流れる / タブレット以下: 横に流れる
+     PC・タブレット: 右端に半円を描いて縦に流れる / スマホ: 横に流れる
      奥（正面から遠い）ほど小さく・淡く・ぼかして立体感を出す */
   async function initHero() {
     const root = document.querySelector("[data-hero-works]");
@@ -92,7 +92,8 @@
     const countEl = root.querySelector("[data-arc-count]");
     const titleEl = root.querySelector("[data-arc-title]");
     const reduce = window.Ink && window.Ink.reduceMotion;
-    const narrow = window.matchMedia("(max-width: 960px)");
+    const narrow = window.matchMedia("(max-width: 640px)");
+    const tablet = window.matchMedia("(max-width: 960px)");
 
     // 半円が途切れないよう、少ない時は複製して6枚以上にする
     const items = [];
@@ -125,7 +126,7 @@
     const ARC_STEP = (24 * Math.PI) / 180;
     const arcPos = (p, cw, R) => {
       const th = p * ARC_STEP;
-      const s = 1 / (1 + 0.52 * Math.abs(p));
+      const s = 1 / (1 + 0.68 * Math.abs(p));
       return { x: R * (1 - Math.cos(th)), y: R * Math.sin(th), s, w: cw * s, h: cw * 0.75 * s };
     };
 
@@ -141,7 +142,7 @@
       mode = narrow.matches ? "h" : "v";
       if (mode === "v") {
         // 画面の幅・高さに収まるように全体を縮める（見切れ防止）
-        const cw0 = H * 0.5,
+        const cw0 = H * 0.62,
           R0 = H * 0.56;
         let l = 0,
           r = 0,
@@ -151,7 +152,7 @@
           const g = arcPos(p, cw0, R0);
           l = Math.min(l, g.x - g.w / 2);
           r = Math.max(r, g.x + g.w / 2);
-          if (Math.abs(p) <= 2) {
+          if (Math.abs(p) <= 1.5) {
             t = Math.min(t, g.y - g.h / 2);
             b = Math.max(b, g.y + g.h / 2);
           }
@@ -159,7 +160,11 @@
         const f = Math.min(1, (W - 24) / (r - l), H / (b - t));
         cw = cw0 * f;
         R = R0 * f;
-        fx = W - 12 - r * f; // 一番右の実績が画面の右端に収まる位置に正面を置く
+        // PCは一番右の実績が画面の右端に収まる位置、タブレットは半円全体が中央に来る位置に正面を置く
+        fx = tablet.matches ? (W - (r - l) * f) / 2 - l * f : W - 12 - r * f;
+        // ラベルを正面の実績のすぐ下に置くための位置
+        root.style.setProperty("--front-l", fx - cw / 2 + "px");
+        root.style.setProperty("--front-b", H / 2 + (cw * 0.75) / 2 + "px");
       } else {
         cw = Math.min(W * 0.62, H * 1.15, 420);
       }
@@ -207,7 +212,7 @@
       if (titleEl) titleEl.textContent = el._work.title;
     }
 
-    // 一定間隔で1枚ずつ送る（PCは下から上へ、タブレット以下は右から左へ）
+    // 一定間隔で1枚ずつ送る（PC・タブレットは下から上へ、スマホは右から左へ）
     let drag = null,
       moved = false,
       visible = true,
@@ -305,6 +310,10 @@
       if (visible) run();
     }).observe(root);
     window.addEventListener("resize", () => {
+      measure();
+      layout();
+    });
+    tablet.addEventListener("change", () => {
       measure();
       layout();
     });
