@@ -1329,14 +1329,33 @@ html:not(.ink-masks) .ink-edge {
   position: relative;
   z-index: 1;
   aspect-ratio: 4 / 5;
-  border-radius: 48% 52% 46% 54% / 38% 40% 60% 62%;
-  overflow: hidden;
-  background: var(--mist);
 }
 .about__photo img {
+  /* 枠が液体のようにゆっくり揺れ続ける */
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: var(--mist);
+  border-radius: 48% 52% 46% 54% / 38% 40% 60% 62%;
+  animation: liquidFrame 14s ease-in-out infinite;
+}
+@keyframes liquidFrame {
+  0%,
+  100% {
+    border-radius: 48% 52% 46% 54% / 38% 40% 60% 62%;
+  }
+  20% {
+    border-radius: 56% 44% 52% 48% / 44% 34% 66% 56%;
+  }
+  40% {
+    border-radius: 42% 58% 40% 60% / 34% 46% 54% 66%;
+  }
+  60% {
+    border-radius: 54% 46% 58% 42% / 42% 38% 62% 58%;
+  }
+  80% {
+    border-radius: 44% 56% 48% 52% / 36% 44% 56% 64%;
+  }
 }
 .about__name {
   font-family: var(--font-head);
