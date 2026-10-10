@@ -13,6 +13,7 @@ HTML / CSS / Vanilla JS のみで作っていて、GitHub Pages でそのまま�
 | `data/works.json` | **実績データ。ここに追記すると全ページに反映されます** |
 | `images/works/実績ID/` | 実績ごとの画像 |
 | `js/config.js` | フォームの送信先、SNSの表示、表示件数の設定 |
+| `js/ink.js` | インクのにじみ・画面切り替えの演出（WebGL） |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
 
 ## 実績を追加する

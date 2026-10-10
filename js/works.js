@@ -22,7 +22,7 @@
     const cat = w.category === 'banner' ? 'banner' : 'lp';
     return `
       <a class="work-card" href="work.html?id=${encodeURIComponent(w.id)}" data-reveal data-cursor="view">
-        <div class="work-card__visual work-card__visual--${cat} px-reveal">
+        <div class="work-card__visual work-card__visual--${cat} ink-reveal">
           <img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" loading="lazy" decoding="async">
         </div>
         <div class="work-card__meta">
@@ -134,12 +134,12 @@
     ].filter((m) => m && m[1]);
 
     const visual = cat === 'banner'
-      ? `<div class="detail-visual detail-visual--banner px-reveal"><img src="${esc(w.images?.banner)}" alt="${esc(w.title)}" width="1080" height="1080"></div>`
-      : `<div class="detail-visual px-reveal"><img src="${esc(w.images?.mockup || thumbOf(w))}" alt="${esc(w.title)}のPC・スマホ表示" width="1600" height="1040"></div>`;
+      ? `<div class="detail-visual detail-visual--banner ink-reveal"><img src="${esc(w.images?.banner)}" alt="${esc(w.title)}" width="1080" height="1080"></div>`
+      : `<div class="detail-visual ink-reveal"><img src="${esc(w.images?.mockup || thumbOf(w))}" alt="${esc(w.title)}のPC・スマホ表示" width="1600" height="1040"></div>`;
 
     const screens = cat === 'lp' && (w.images?.pc || w.images?.sp) ? `
       <section class="detail-sec" data-reveal>
-        <h2>ページ全体</h2>
+        <h2><span class="ink-dot" aria-hidden="true"></span>ページ全体</h2>
         <p class="screen__hint">枠の中をスクロールすると、ページ全体を見られます。</p>
         <div class="screens">
           ${w.images.pc ? `<div class="screen screen--pc"><p class="screen__label">PC</p><div class="screen__frame screen__frame--pc" tabindex="0" aria-label="PC表示のスクロール領域"><img src="${esc(w.images.pc)}" alt="${esc(w.title)}のPC表示（全体）" loading="lazy"></div></div>` : ''}
@@ -149,7 +149,7 @@
 
     root.innerHTML = `
       <section class="page-hero">
-        <canvas class="page-hero__canvas" data-ink="page" aria-hidden="true"></canvas>
+        <canvas class="ink-canvas" data-ink="page" aria-hidden="true"></canvas>
         <div class="wrap">
           <ol class="breadcrumb"><li><a href="./">HOME</a></li><li><a href="works.html">WORKS</a></li><li aria-current="page">${esc(w.title)}</li></ol>
           <div class="detail-head">
@@ -167,16 +167,16 @@
       <section class="section" style="padding-top:clamp(56px,7vw,96px)">
         <div class="wrap detail-body">
           <div class="detail-main">
-            ${w.purpose ? `<section class="detail-sec" data-reveal><h2>目的・課題</h2><p>${esc(w.purpose)}</p></section>` : ''}
-            ${w.points?.length ? `<section class="detail-sec" data-reveal><h2>工夫した点</h2><ol class="points">${w.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ol></section>` : ''}
-            ${w.specs?.length ? `<section class="detail-sec" data-reveal><h2>デザイン仕様</h2><dl class="specs">${w.specs.map((s) => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`).join('')}</dl></section>` : ''}
-            ${w.result ? `<section class="detail-sec" data-reveal><h2>成果</h2><p>${esc(w.result)}</p></section>` : ''}
+            ${w.purpose ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>目的・課題</h2><p>${esc(w.purpose)}</p></section>` : ''}
+            ${w.points?.length ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>工夫した点</h2><ol class="points">${w.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ol></section>` : ''}
+            ${w.specs?.length ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>デザイン仕様</h2><dl class="specs">${w.specs.map((s) => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`).join('')}</dl></section>` : ''}
+            ${w.result ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>成果</h2><p>${esc(w.result)}</p></section>` : ''}
             ${screens}
           </div>
           <aside class="detail-aside" data-reveal>
             <dl>${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-            ${w.url ? `<a class="btn" href="${esc(w.url)}" target="_blank" rel="noopener">サイトを見る<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>` : ''}
-            <a class="btn btn--ghost" href="./#contact">この実績について相談する</a>
+            ${w.url ? `<a class="btn btn--blue" href="${esc(w.url)}" target="_blank" rel="noopener">サイトを見る<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>` : ''}
+            <a class="btn" href="./#contact">この実績について相談する</a>
           </aside>
         </div>
       </section>
