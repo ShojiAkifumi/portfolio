@@ -55,26 +55,166 @@
     console.error(err);
   }
 
-  /* ---------- ファーストビューの実績コラージュ ---------- */
+  /* ---------- ファーストビューの実績スライダー ----------
+     PC: 右端に半円を描いて縦に流れる / タブレット以下: 横に流れる
+     奥（正面から遠い）ほど小さく・淡く・ぼかして立体感を出す */
   async function initHero() {
-    const box = document.querySelector('[data-hero-works]');
-    if (!box) return;
+    const root = document.querySelector('[data-hero-works]');
+    if (!root) return;
     let works;
     try { works = await loadWorks(); } catch (e) { console.error(e); return; }
-    const lps = works.filter((w) => w.category !== 'banner');
-    const banners = works.filter((w) => w.category === 'banner');
-    // 最新のLPとバナーを1点ずつ。足りない種類は他の実績で埋める
-    const picks = [lps[0], banners[0]];
-    const rest = works.filter((w) => !picks.includes(w));
-    const slots = picks.map((w) => w || rest.shift()).filter(Boolean);
-    box.innerHTML = slots.map((w, i) => {
-      const cat = w.category === 'banner' ? 'banner' : 'lp';
-      return `<a class="hero-work hero-work--${cat} s${i + 1}" href="work.html?id=${encodeURIComponent(w.id)}" data-cursor="view" style="--d:${-i * 1.7}s;--t:${6 + i}s">
-          <span class="hero-work__img ink-reveal" style="--ink-delay:${700 + i * 300}ms"><img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" decoding="async"></span>
-          <span class="hero-work__cap"><small>${CATS[cat]}</small>${esc(w.title)}</span>
-        </a>`;
-    }).join('') + '<a class="hero__works-all" href="works.html">ALL WORKS</a>';
-    window.Site.Reveal.observe(box);
+    const cfg = window.SITE_CONFIG || {};
+    const list = works.slice(0, cfg.heroWorksCount || 8);
+    if (!list.length) return;
+    new Arc(root, list, cfg.heroInterval || 3600);
+  }
+
+  function Arc(root, list, interval) {
+    const stage = root.querySelector('[data-arc-stage]');
+    const countEl = root.querySelector('[data-arc-count]');
+    const titleEl = root.querySelector('[data-arc-title]');
+    const reduce = window.Ink && window.Ink.reduceMotion;
+    const narrow = window.matchMedia('(max-width: 960px)');
+
+    // 半円が途切れないよう、少ない時は複製して6枚以上にする
+    const items = [];
+    let copies = Math.max(1, Math.ceil(6 / list.length));
+    for (let c = 0; c < copies; c++) {
+      list.forEach((w, i) => {
+        const cat = w.category === 'banner' ? 'banner' : 'lp';
+        const a = document.createElement('a');
+        a.className = `arc-item arc-item--${cat}`;
+        a.href = `work.html?id=${encodeURIComponent(w.id)}`;
+        a.dataset.cursor = 'view';
+        a.innerHTML = `<span class="arc-item__in" style="--i:${items.length}"><img src="${esc(thumbOf(w))}" alt="${c ? '' : esc(w.title)}" decoding="async"></span>`;
+        if (c) { a.setAttribute('aria-hidden', 'true'); a.tabIndex = -1; }
+        a._work = w; a._src = i;
+        stage.appendChild(a);
+        items.push(a);
+      });
+    }
+    const N = items.length;
+
+    let offset = 0, target = 0, hover = false, drag = null, visible = true, last = 0, timer = 0;
+    let W = 0, H = 0, mode = '';
+    const measure = () => {
+      W = stage.clientWidth; H = stage.clientHeight; mode = narrow.matches ? 'h' : 'v';
+      // カードの基準サイズ
+      const cw = mode === 'v' ? Math.min(H * 0.5, W * 0.62) : Math.min(W * 0.62, H * 1.15, 420);
+      root.style.setProperty('--card-w', cw + 'px');
+      root._cw = cw;
+    };
+    const wrap = (p) => { p = ((p % N) + N) % N; return p >= N / 2 ? p - N : p; };
+
+    function layout() {
+      const cw = root._cw, ch = cw * 0.75;
+      items.forEach((el, i) => {
+        const p = wrap(i - offset), ap = Math.abs(p);
+        let x, y, s, o;
+        if (mode === 'v') {
+          // 右側に中心を置いた円周上に並べる（正面が一番左に張り出す）
+          const R = H * 0.56, th = p * 24 * Math.PI / 180;
+          const px = W + R * 0.1;
+          x = px - R * Math.cos(th) - R * 0.1; y = H / 2 + R * Math.sin(th);
+          s = 1 / (1 + 0.52 * ap);
+          o = Math.max(0, 1 - 0.26 * ap) * (ap > 3.2 ? Math.max(0, (3.7 - ap) / 0.5) : 1);
+        } else {
+          x = W / 2 + Math.sign(p) * cw * (0.62 * Math.min(ap, 1) + 0.42 * Math.max(0, ap - 1));
+          y = H / 2;
+          s = 1 / (1 + 0.38 * ap);
+          o = Math.max(0, 1 - 0.32 * ap) * (ap > 2.2 ? Math.max(0, (2.7 - ap) / 0.5) : 1);
+        }
+        el.style.transform = `translate3d(${(x - cw / 2).toFixed(1)}px, ${(y - ch / 2).toFixed(1)}px, 0) scale(${s.toFixed(3)})`;
+        el.style.opacity = o.toFixed(3);
+        el.style.zIndex = String(100 - Math.round(ap * 10));
+        el.style.setProperty('--blur', Math.min(ap * 1.3, 3.5).toFixed(2) + 'px');
+        el.style.setProperty('--pale', Math.min(ap * 0.16, 0.5).toFixed(3));
+        el.style.visibility = o < 0.01 ? 'hidden' : '';
+        el.classList.toggle('is-front', ap < 0.5);
+      });
+    }
+
+    let shown = -1;
+    function updateLabel() {
+      const i = ((Math.round(target) % N) + N) % N;
+      if (i === shown) return;
+      shown = i;
+      const el = items[i];
+      if (countEl) countEl.textContent = `${String(el._src + 1).padStart(2, '0')} / ${String(list.length).padStart(2, '0')}`;
+      if (titleEl) titleEl.textContent = el._work.title;
+    }
+
+    function frame(t) {
+      const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
+      if (!drag) offset += (target - offset) * (1 - Math.exp(-dt * (reduce ? 30 : 4.2)));
+      if (Math.abs(target - offset) < 0.0005) offset = target;
+      layout();
+      raf = visible ? requestAnimationFrame(frame) : 0;
+    }
+    let raf = 0;
+    const run = () => { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } };
+
+    const go = (d) => { target = Math.round(target) + d; updateLabel(); };
+    const tick = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (!hover && !drag && visible && !document.hidden) go(1); tick(); }, interval);
+    };
+
+    // カーソルを重ねている間は止める
+    root.addEventListener('mouseenter', () => { hover = true; });
+    root.addEventListener('mouseleave', () => { hover = false; tick(); });
+    root.addEventListener('focusin', (e) => {
+      hover = true;
+      // キーボードで選んだ実績を正面に（クリック時は click 側で処理）
+      const i = items.indexOf(e.target.closest('.arc-item'));
+      if (i >= 0 && e.target.matches(':focus-visible')) { target = target + wrap(i - target); updateLabel(); }
+    });
+    root.addEventListener('focusout', () => { hover = false; });
+
+    // 正面以外をクリックしたら正面に送る。正面は詳細ページへ
+    stage.addEventListener('click', (e) => {
+      const el = e.target.closest('.arc-item');
+      if (!el) return;
+      if (moved) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      const p = wrap(items.indexOf(el) - target);
+      if (Math.abs(p) > 0.5) { e.preventDefault(); e.stopImmediatePropagation(); target += Math.round(p); updateLabel(); tick(); }
+    }, true);
+
+    // ドラッグ・スワイプで送る
+    let moved = false;
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.button) return;
+      drag = { x: e.clientX, y: e.clientY, start: offset };
+      moved = false;
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const d = mode === 'v' ? e.clientY - drag.y : e.clientX - drag.x;
+      if (Math.abs(d) > 6) moved = true;
+      if (!moved) return;
+      offset = target = drag.start - d / (root._cw * (mode === 'v' ? 0.55 : 0.6));
+      run();
+    });
+    const end = () => {
+      if (!drag) return;
+      drag = null;
+      target = Math.round(target);
+      updateLabel(); tick();
+    };
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    stage.addEventListener('dragstart', (e) => e.preventDefault());
+
+    new IntersectionObserver((es) => {
+      visible = es[0].isIntersecting;
+      if (visible) run();
+    }).observe(root);
+    window.addEventListener('resize', () => { measure(); layout(); });
+    narrow.addEventListener('change', () => { measure(); layout(); });
+
+    measure(); layout(); updateLabel(); run();
+    if (!reduce) tick();
+    root.classList.add('is-built');
   }
 
   /* ---------- トップページ ---------- */

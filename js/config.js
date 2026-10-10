@@ -12,6 +12,9 @@ window.SITE_CONFIG = {
     { name: "note", url: "" }
   ],
 
+  // ファーストビューの半円スライダーに表示する実績の数（新しい順）と、切り替わる間隔（ミリ秒）
+  heroWorksCount: 8,
+  heroInterval: 3600,
   // トップページのスライダーに表示する実績の数（新しい順）
   topWorksCount: 12,
   // スライダーが流れる速さ（1秒あたりのpx）

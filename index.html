@@ -46,10 +46,6 @@
     <div class="wrap hero__inner">
       <div class="hero__profile">
         <p class="hero__eyebrow hero__fade"><span class="ink-dot" aria-hidden="true"></span>PORTFOLIO</p>
-        <p class="hero__catch">
-          <span class="line"><span>心を動かすデザインで</span></span>
-          <span class="line"><span>あなたのビジネスを</span><span>サポートします</span></span>
-        </p>
         <h1 class="hero__name" id="hero-title">
           <span class="hero__name-ja">庄司 明史</span>
           <span class="hero__name-en">SHOJI AKIFUMI</span>
@@ -63,7 +59,18 @@
           <a class="btn btn--ghost" href="#works">制作実績を見る</a>
         </div>
       </div>
-      <div class="hero__works" data-hero-works aria-label="最新の制作実績"></div>
+      <div class="hero__showcase">
+        <p class="hero__catch hero__fade">心を動かすデザインで<br>あなたのビジネスを<br class="pc-br">サポートします</p>
+        <div class="arc" data-hero-works aria-roledescription="carousel" aria-label="制作実績">
+          <div class="arc__stage" data-arc-stage></div>
+          <div class="arc__label hero__fade">
+            <span class="arc__tag">WORKS<small>制作実績</small></span>
+            <span class="arc__count" data-arc-count aria-hidden="true"></span>
+            <a class="arc__all" href="works.html">一覧へ</a>
+            <span class="arc__title" data-arc-title aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
     </div>
     <a class="scroll-cue" href="#works" aria-label="下へスクロール"><span class="scroll-cue__text">SCROLL</span><span class="scroll-cue__line"></span></a>
   </section>
