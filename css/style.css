@@ -153,13 +153,15 @@ html:not(.ink-masks) .ink-edge { display: none; }
 .arc-item--banner .arc-item__in img { border-radius: 6px; }
 .arc-item__in::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: var(--pale, 0); pointer-events: none; }
 .arc-item.is-front:hover .arc-item__in { transform: translateY(-6px); box-shadow: 0 40px 60px -34px rgba(38, 57, 90, .5), 0 0 0 1px rgba(196, 226, 248, .8) inset; }
-.arc__label { position: absolute; z-index: 3; left: 0; bottom: clamp(20px, 6vh, 64px); display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; max-width: min(46%, 250px); font-size: 0.76rem; color: var(--ink-soft); }
+.arc__label { position: absolute; z-index: 120; left: -18px; bottom: clamp(16px, 5vh, 56px); padding: 14px 18px 16px; border-radius: 18px; background: color-mix(in srgb, var(--paper) 80%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; max-width: min(50%, 290px); font-size: 0.76rem; color: var(--ink-soft); }
 .arc__tag { font-family: var(--font-en); font-weight: 700; letter-spacing: 0.24em; color: var(--gray); display: inline-flex; align-items: baseline; gap: 8px; }
 .arc__tag small { font-family: var(--font-body); font-weight: 500; font-size: 0.7rem; letter-spacing: 0.12em; }
 .arc__count { font-family: var(--font-en); font-weight: 600; letter-spacing: 0.1em; color: var(--blue); }
-.arc__title { flex: 1 1 100%; min-width: 0; font-weight: 500; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.arc__all { font-family: var(--font-body); font-size: 0.72rem; color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--gray); padding-bottom: 1px; }
-.arc__all:hover { color: var(--deep); border-color: var(--deep); }
+.arc__title { flex: 1 1 100%; min-width: 0; font-size: 0.9rem; font-weight: 700; color: var(--ink); letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arc__all { margin-top: 6px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--deep); background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(6px); color: var(--deep); font-family: var(--font-head); font-weight: 700; font-size: 0.86rem; letter-spacing: 0.08em; text-decoration: none; white-space: nowrap; transition: background .4s var(--soft), color .4s var(--soft); }
+.arc__all svg { width: 16px; height: 16px; transition: transform .4s var(--soft); }
+.arc__all:hover { background: var(--deep); color: #fff; }
+.arc__all:hover svg { transform: translateX(4px); }
 .js .arc-item__in { opacity: 0; transform: translateY(24px) scale(.96); }
 .js .is-ready .arc-item__in { opacity: 1; transform: none; transition: opacity 1.4s var(--soft) calc(.7s + var(--i) * .1s), transform 1.4s var(--soft) calc(.7s + var(--i) * .1s), box-shadow .8s var(--soft); }
 .js .is-ready .arc-item.is-front:hover .arc-item__in { transform: translateY(-6px); transition-delay: 0s; }
@@ -423,8 +425,8 @@ select.input { appearance: none; background: var(--paper) url("data:image/svg+xm
   .hero__showcase { position: relative; inset: auto; margin-top: 28px; }
   .arc { position: relative; inset: auto; }
   .arc__stage { position: relative; inset: auto; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); height: clamp(200px, 46vw, 380px); margin-inline: calc(var(--gutter) * -1); }
-  .arc__label { position: static; max-width: none; margin-top: 14px; justify-content: center; text-align: center; }
-  .arc__title { flex: 0 1 auto; max-width: 100%; }
+  .arc__label { position: static; max-width: none; margin-top: 14px; padding: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; justify-content: center; text-align: center; }
+  .arc__title { max-width: 100%; }
   .about__visual { max-width: 400px; margin-inline: auto; width: 100%; }
   .detail-aside { position: static; }
 }
