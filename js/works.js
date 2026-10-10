@@ -93,7 +93,6 @@
     const titleEl = root.querySelector("[data-arc-title]");
     const reduce = window.Ink && window.Ink.reduceMotion;
     const narrow = window.matchMedia("(max-width: 640px)");
-    const tablet = window.matchMedia("(max-width: 960px)");
 
     // 半円が途切れないよう、少ない時は複製して6枚以上にする
     const items = [];
@@ -162,9 +161,9 @@
         const f = Math.min(1, (W - 24) / (r - l), H / (b - t));
         cw = cw0 * f * 0.9; // 正面の実績は収まるサイズより1割小さく
         R = R0 * f;
-        // PCは一番右の実績が画面の右端に収まる位置、タブレットは半円全体が中央に来る位置に正面を置く
+        // 一番右の実績が画面の右端に収まる位置に正面を置く
         // PCはさらに幅の12%ぶん左へ寄せる（名前側にはみ出さない範囲で）
-        fx = tablet.matches ? (W - (r - l) * f) / 2 - l * f : Math.max(-l * f, W - 12 - r * f - W * 0.12);
+        fx = Math.max(-l * f, W - 12 - r * f - W * 0.12);
         // ラベルを正面の実績のすぐ下に置くための位置
         root.style.setProperty("--front-l", fx - cw / 2 + "px");
         root.style.setProperty("--front-b", H / 2 + (cw * 0.75) / 2 + "px");
@@ -313,10 +312,6 @@
       if (visible) run();
     }).observe(root);
     window.addEventListener("resize", () => {
-      measure();
-      layout();
-    });
-    tablet.addEventListener("change", () => {
       measure();
       layout();
     });
