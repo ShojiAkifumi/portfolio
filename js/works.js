@@ -63,14 +63,14 @@
     try { works = await loadWorks(); } catch (e) { console.error(e); return; }
     const lps = works.filter((w) => w.category !== 'banner');
     const banners = works.filter((w) => w.category === 'banner');
-    // LP・バナー・LP・バナーの順に並べ、足りない種類は他の実績で埋める
-    const picks = [lps[0], banners[0], lps[1], banners[1]];
+    // 最新のLPとバナーを1点ずつ。足りない種類は他の実績で埋める
+    const picks = [lps[0], banners[0]];
     const rest = works.filter((w) => !picks.includes(w));
     const slots = picks.map((w) => w || rest.shift()).filter(Boolean);
     box.innerHTML = slots.map((w, i) => {
       const cat = w.category === 'banner' ? 'banner' : 'lp';
       return `<a class="hero-work hero-work--${cat} s${i + 1}" href="work.html?id=${encodeURIComponent(w.id)}" data-cursor="view" style="--d:${-i * 1.7}s;--t:${6 + i}s">
-          <span class="hero-work__img ink-reveal" style="--ink-delay:${600 + i * 220}ms"><img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" decoding="async"></span>
+          <span class="hero-work__img ink-reveal" style="--ink-delay:${700 + i * 300}ms"><img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" decoding="async"></span>
           <span class="hero-work__cap"><small>${CATS[cat]}</small>${esc(w.title)}</span>
         </a>`;
     }).join('') + '<a class="hero__works-all" href="works.html">ALL WORKS</a>';
@@ -79,19 +79,97 @@
 
   /* ---------- トップページ ---------- */
   async function initTop() {
-    const grid = document.querySelector('[data-works="top"]');
-    if (!grid) return;
+    const track = document.querySelector('[data-works="top"]');
+    if (!track) return;
+    const slider = track.closest('[data-works-slider]');
     let works;
-    try { works = await loadWorks(); } catch (e) { showError(grid, e); return; }
-    const n = cfg.topWorksCount || 6;
+    try { works = await loadWorks(); } catch (e) { showError(track, e); return; }
+    const n = cfg.topWorksCount || 12;
+    const loop = Slider(slider, track);
     const render = (cat) => {
       const list = works.filter((w) => cat === 'all' || w.category === cat).slice(0, n);
-      grid.innerHTML = list.length ? list.map(cardHTML).join('') : '<p class="works-empty">この種類の実績は準備中です。</p>';
-      window.Site.Reveal.observe(grid);
+      if (!list.length) { track.innerHTML = '<p class="works-empty">この種類の実績は準備中です。</p>'; loop.reset(false); return; }
+      track.innerHTML = list.map(cardHTML).join('');
+      loop.reset(true);
+      window.Site.Reveal.observe(track);
     };
     const filter = document.querySelector('[data-filter]');
     if (filter) renderFilter(filter, works, 'all', render);
     render('all');
+  }
+
+  // 自動で左へ流れ続けるスライダー。カーソルを重ねる・フォーカス・タッチ中は止まる
+  function Slider(root, track) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const speed = cfg.sliderSpeed || 40;
+    let x = 0, setW = 0, last = 0, raf = 0, hover = false, inView = true, active = false;
+
+    function fill() {
+      const originals = Array.from(track.children);
+      if (!originals.length) return;
+      // 1周分が画面幅より短いと隙間ができるので、足りるまで並べてから2周分にする
+      let base = originals;
+      track.innerHTML = '';
+      base.forEach((el) => track.appendChild(el));
+      let guard = 0;
+      while (track.scrollWidth < root.clientWidth + 1 && guard++ < 10) {
+        originals.forEach((el) => track.appendChild(cloneOf(el)));
+      }
+      base = Array.from(track.children);
+      setW = track.scrollWidth;
+      base.forEach((el) => track.appendChild(cloneOf(el)));
+    }
+    function cloneOf(el) {
+      const c = el.cloneNode(true);
+      c.setAttribute('aria-hidden', 'true');
+      c.setAttribute('tabindex', '-1');
+      c.querySelectorAll('[data-reveal-bound]').forEach((n) => delete n.dataset.revealBound);
+      delete c.dataset.revealBound;
+      return c;
+    }
+    function frame(now) {
+      const dt = Math.min(64, now - last) / 1000;
+      last = now;
+      if (!hover) {
+        x -= speed * dt;
+        if (x <= -setW) x += setW;
+        track.style.transform = `translate3d(${x}px,0,0)`;
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    function run() {
+      cancelAnimationFrame(raf);
+      if (reduce || !active || !inView || document.hidden || !setW) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+
+    root.addEventListener('mouseenter', () => { hover = true; });
+    root.addEventListener('mouseleave', () => { hover = false; });
+    root.addEventListener('focusin', () => { hover = true; });
+    root.addEventListener('focusout', () => { hover = false; });
+    root.addEventListener('touchstart', () => { hover = true; }, { passive: true });
+    root.addEventListener('touchend', () => { setTimeout(() => { hover = false; }, 1200); }, { passive: true });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([en]) => { inView = en.isIntersecting; run(); }).observe(root);
+    }
+    document.addEventListener('visibilitychange', run);
+    let rt;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => { if (!active) return; const html = track.dataset.src; track.innerHTML = html; fill(); x = 0; window.Site.Reveal.observe(track); run(); }, 200);
+    });
+
+    return {
+      reset(on) {
+        active = on && !reduce;
+        x = 0;
+        track.style.transform = '';
+        root.classList.toggle('is-static', !active);
+        if (active) { track.dataset.src = track.innerHTML; fill(); }
+        run();
+      }
+    };
   }
 
   /* ---------- 実績一覧ページ ---------- */

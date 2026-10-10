@@ -12,8 +12,10 @@ window.SITE_CONFIG = {
     { name: "note", url: "" }
   ],
 
-  // トップページに表示する実績の数
-  topWorksCount: 6,
+  // トップページのスライダーに表示する実績の数（新しい順）
+  topWorksCount: 12,
+  // スライダーが流れる速さ（1秒あたりのpx）
+  sliderSpeed: 40,
   // 実績一覧ページで一度に表示する数
   worksPerPage: 12
 };
