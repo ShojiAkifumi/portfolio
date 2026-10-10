@@ -78,12 +78,19 @@
         entries.forEach((en) => {
           const a = map.get(en.target.id);
           if (a && en.isIntersecting) {
-            links.forEach((l) => l.removeAttribute('aria-current'));
+            links.forEach((l) => l.setAttribute('aria-current', 'false'));
             a.setAttribute('aria-current', 'true');
           }
         });
       }, { rootMargin: '-45% 0px -50% 0px' });
       map.forEach((_, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+      // ページのトップ（ファーストビュー）に戻ったら現在地の表示を外す
+      const hero = $('.hero');
+      if (hero) {
+        new IntersectionObserver((entries) => {
+          if (entries.some((en) => en.isIntersecting)) links.forEach((l) => l.setAttribute('aria-current', 'false'));
+        }, { rootMargin: '-45% 0px -50% 0px' }).observe(hero);
+      }
     }
   }
 
