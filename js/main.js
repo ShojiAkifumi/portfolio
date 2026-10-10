@@ -90,7 +90,7 @@
   /* ---------- 漂うインクの背景 ---------- */
   // center: [x, y]（0〜1、y は下から）。scale: インクの大きさ
   const CLOUDS = {
-    hero: { center: (w) => (w < 760 ? [.8, .14] : [.77, .5]), scale: (w) => (w < 760 ? .5 : .56), alpha: 1, mouse: true, delay: 250 },
+    hero: { center: (w) => (w < 760 ? [.55, .32] : [.72, .5]), scale: (w) => (w < 760 ? .55 : .6), alpha: 1, mouse: true, delay: 250 },
     page: { center: (w) => (w < 760 ? [.95, .8] : [.88, .55]), scale: (w) => (w < 760 ? .5 : .62), alpha: .8, mouse: true, delay: 250 },
     contact: { center: (w) => (w < 760 ? [.05, .08] : [.08, .2]), scale: () => .7, alpha: .55, mouse: false, delay: 0 }
   };
@@ -125,7 +125,7 @@
       el.classList.add('is-inking');
       const end = () => el.classList.remove('is-inking');
       el.addEventListener('animationend', (e) => { if (e.animationName === 'inkMask') end(); });
-      setTimeout(end, 2200);
+      setTimeout(end, 2200 + (parseFloat(el.style.getPropertyValue('--ink-delay')) || 0));
     }
     function show(el) {
       if (!el.classList.contains('ink-reveal')) { el.classList.remove('is-pending'); return; }

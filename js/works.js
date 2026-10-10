@@ -55,6 +55,28 @@
     console.error(err);
   }
 
+  /* ---------- ファーストビューの実績コラージュ ---------- */
+  async function initHero() {
+    const box = document.querySelector('[data-hero-works]');
+    if (!box) return;
+    let works;
+    try { works = await loadWorks(); } catch (e) { console.error(e); return; }
+    const lps = works.filter((w) => w.category !== 'banner');
+    const banners = works.filter((w) => w.category === 'banner');
+    // LP・バナー・LP・バナーの順に並べ、足りない種類は他の実績で埋める
+    const picks = [lps[0], banners[0], lps[1], banners[1]];
+    const rest = works.filter((w) => !picks.includes(w));
+    const slots = picks.map((w) => w || rest.shift()).filter(Boolean);
+    box.innerHTML = slots.map((w, i) => {
+      const cat = w.category === 'banner' ? 'banner' : 'lp';
+      return `<a class="hero-work hero-work--${cat} s${i + 1}" href="work.html?id=${encodeURIComponent(w.id)}" data-cursor="view" style="--d:${-i * 1.7}s;--t:${6 + i}s">
+          <span class="hero-work__img ink-reveal" style="--ink-delay:${600 + i * 220}ms"><img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" decoding="async"></span>
+          <span class="hero-work__cap"><small>${CATS[cat]}</small>${esc(w.title)}</span>
+        </a>`;
+    }).join('') + '<a class="hero__works-all" href="works.html">ALL WORKS</a>';
+    window.Site.Reveal.observe(box);
+  }
+
   /* ---------- トップページ ---------- */
   async function initTop() {
     const grid = document.querySelector('[data-works="top"]');
@@ -198,6 +220,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    initHero();
     initTop();
     initList();
     initDetail();
