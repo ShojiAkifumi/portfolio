@@ -299,8 +299,8 @@
       const d = mode === "v" ? e.clientY - drag.y : e.clientX - drag.x;
       if (Math.abs(d) > 6) moved = true;
       if (!moved) return;
-      const delta = mode === "v" ? d : -d;
-      offset = target = drag.start + delta / (cw * (mode === "v" ? 0.55 : 0.6));
+      // 指・カーソルを動かした方向に実績が動く（下へドラッグ→下へ、右へドラッグ→右へ）
+      offset = target = drag.start - d / (cw * (mode === "v" ? 0.55 : 0.6));
       run();
     });
     const end = () => {
