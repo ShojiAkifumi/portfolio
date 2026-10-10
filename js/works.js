@@ -127,7 +127,9 @@
     const arcPos = (p, cw, R) => {
       const th = p * ARC_STEP;
       const s = 1 / (1 + 0.68 * Math.abs(p));
-      return { x: R * (1 - Math.cos(th)), y: R * Math.sin(th), s, w: cw * s, h: cw * 0.75 * s };
+      const w = cw * s;
+      // 右端が円に沿うように置く（奥の実績の右端が正面より右に来る）
+      return { x: (cw - w) / 2 + R * (1 - Math.cos(th)), y: R * Math.sin(th), s, w, h: cw * 0.75 * s };
     };
 
     let W = 0,
