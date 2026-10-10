@@ -80,7 +80,7 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 
 ## 設定（`js/config.js`）
 
-- `formEndpoint` … お問い合わせフォームの送信先。[Formspree](https://formspree.io/) で無料のフォームを作り、表示されるURL（`https://formspree.io/f/xxxx`）を入れます。空のままだと送信されません
+- `formEndpoint` … お問い合わせフォームの送信先。[FormSubmit](https://formsubmit.co/) を使い、`https://formsubmit.co/ajax/ackeytoday@gmail.com` に送ります。初回の送信時に届く確認メールの「Activate Form」を押すと有効になります。空にすると送信されません
 - `showSns` / `sns` … フッターのSNSアイコン。`showSns: true` にして `url` を入れると表示されます
 
 ## 手元で確認する

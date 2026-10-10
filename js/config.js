@@ -1,8 +1,8 @@
 // サイト全体の設定
 window.SITE_CONFIG = {
-  // お問い合わせフォームの送信先（Formspree のフォームURL。例: "https://formspree.io/f/xxxxxxx"）
-  // 空のままだと送信ボタンを押しても送信されず、準備中の案内が表示されます
-  formEndpoint: "",
+  // お問い合わせフォームの送信先（FormSubmit 経由で ackeytoday@gmail.com に届きます）
+  // 空にすると送信ボタンを押しても送信されず、準備中の案内が表示されます
+  formEndpoint: "https://formsubmit.co/ajax/ackeytoday@gmail.com",
 
   // フッターのSNSアイコン。公開する時は showSns を true にして url を入れてください
   showSns: false,

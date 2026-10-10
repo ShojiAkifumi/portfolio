@@ -33,6 +33,19 @@
       input.addEventListener('input', () => { if (input.getAttribute('aria-invalid') === 'true') check(input); });
     });
 
+    // メールで読みやすいよう、日本語の項目名でまとめて送る
+    const labels = { name: 'お名前', company: '会社名・屋号', email: 'メールアドレス', service: 'ご依頼内容',
+      budget: 'ご予算', deadline: 'ご希望の納期', message: 'ご相談内容' };
+    function payload() {
+      const fd = new FormData(form);
+      const data = { _subject: '【ポートフォリオ】お問い合わせが届きました', _template: 'table', _captcha: 'false' };
+      Object.keys(labels).forEach((k) => {
+        data[labels[k]] = fd.getAll(k).map((v) => String(v).trim()).filter(Boolean).join('、') || '—';
+      });
+      data._replyto = String(fd.get('email') || '').trim();
+      return data;
+    }
+
     function show(text, state) {
       status.hidden = false;
       status.textContent = text;
@@ -53,8 +66,13 @@
       const label = submit.firstChild.textContent;
       submit.firstChild.textContent = '送信中…';
       try {
-        const res = await fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error(String(res.status));
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          body: JSON.stringify(payload()),
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || String(data.success) === 'false') throw new Error(data.message || String(res.status));
         form.reset();
         show('送信しました。内容を確認して、ご入力のメールアドレスにお返事します。', 'ok');
       } catch (err) {
