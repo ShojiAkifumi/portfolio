@@ -564,10 +564,15 @@ html:not(.ink-masks) .ink-edge {
     transform 0.8s var(--soft),
     box-shadow 0.8s var(--soft);
 }
+/* 画像は切らずにカードの中央へ収める（縦が長い画像は上下の余白が同じになるよう高さで合わせる） */
 .arc-item__in img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  position: absolute;
+  inset: var(--pad, 7%);
+  margin: auto;
+  width: auto;
+  height: auto;
+  max-width: calc(100% - var(--pad, 7%) * 2);
+  max-height: calc(100% - var(--pad, 7%) * 2);
   filter: blur(var(--blur, 0px));
   pointer-events: none;
 }
@@ -575,7 +580,7 @@ html:not(.ink-masks) .ink-edge {
   border-radius: 6px;
 }
 .arc-item--lp .arc-item__in {
-  padding: 3.5%;
+  --pad: 3.5%;
 }
 .arc-item__in::after {
   content: "";
