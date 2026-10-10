@@ -93,6 +93,8 @@
     const titleEl = root.querySelector("[data-arc-title]");
     const reduce = window.Ink && window.Ink.reduceMotion;
     const narrow = window.matchMedia("(max-width: 640px)");
+    // 1200px以下は横の広がりを狭めて、正面から上下3枚目までを画面内に収める
+    const compact = window.matchMedia("(max-width: 1200px)");
 
     // 半円が途切れないよう、少ない時は複製して6枚以上にする
     const items = [];
@@ -122,16 +124,16 @@
     };
 
     // 縦（PC）の半円。正面を原点に、右側に中心がある円の上に並べる
-    const ARC_STEP = (24 * Math.PI) / 180;
     const arcPos = (p, cw, R) => {
-      const th = p * ARC_STEP;
+      const th = (p * (compact.matches ? 22 : 24) * Math.PI) / 180;
+      const kx = compact.matches ? 0.5 : 1;
       const s = 1 / (1 + 0.68 * Math.abs(p));
       const w = cw * s;
       // 正面のすぐ後ろ（1番目・2番目）は40pxほど右へずらす
       const ap = Math.abs(p);
       const shift = 40 * Math.min(ap, 1) * Math.min(Math.max(3 - ap, 0), 1);
       // 右端が円に沿うように置く（奥の実績の右端が正面より右に来る）
-      return { x: (cw - w) / 2 + R * (1 - Math.cos(th)) + shift, y: R * Math.sin(th), s, w, h: cw * 0.75 * s };
+      return { x: (cw - w) / 2 + R * kx * (1 - Math.cos(th)) + shift, y: R * Math.sin(th), s, w, h: cw * 0.75 * s };
     };
 
     let W = 0,
@@ -156,7 +158,7 @@
           const g = arcPos(p, cw0, R0);
           l = Math.min(l, g.x - g.w / 2);
           r = Math.max(r, g.x + g.w / 2);
-          if (Math.abs(p) <= 1.5) {
+          if (Math.abs(p) <= (compact.matches ? 3 : 1.5)) {
             t = Math.min(t, g.y - g.h / 2);
             b = Math.max(b, g.y + g.h / 2);
           }
@@ -189,7 +191,8 @@
           x = fx + g.x;
           y = H / 2 + g.y;
           s = g.s;
-          o = Math.max(0, 1 - 0.26 * ap) * (ap > 3.2 ? Math.max(0, (3.7 - ap) / 0.5) : 1);
+          const fade = compact.matches ? 3.1 : 3.2;
+          o = Math.max(0, 1 - 0.26 * ap) * (ap > fade ? Math.max(0, (fade + 0.4 - ap) / 0.4) : 1);
         } else {
           x = W / 2 + Math.sign(p) * cw * (0.62 * Math.min(ap, 1) + 0.42 * Math.max(0, ap - 1));
           y = H / 2;
@@ -314,6 +317,10 @@
       visible = es[0].isIntersecting;
       if (visible) run();
     }).observe(root);
+    compact.addEventListener("change", () => {
+      measure();
+      layout();
+    });
     window.addEventListener("resize", () => {
       measure();
       layout();
