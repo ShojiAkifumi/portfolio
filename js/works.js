@@ -394,7 +394,12 @@
       showError(root, e);
       return;
     }
-    const idx = works.findIndex((w) => w.id === qs.get("id"));
+    const id = qs.get("id");
+    if (!id) {
+      location.replace("works.html");
+      return;
+    }
+    const idx = works.findIndex((w) => w.id === id);
     if (idx < 0) {
       root.innerHTML = `<div class="wrap" style="padding-block:120px"><p class="works-empty">お探しの実績が見つかりませんでした。<br><a href="works.html">実績一覧へ戻る</a></p></div>`;
       return;
