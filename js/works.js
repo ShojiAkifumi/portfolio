@@ -66,10 +66,10 @@
     const cfg = window.SITE_CONFIG || {};
     const list = works.slice(0, cfg.heroWorksCount || 8);
     if (!list.length) return;
-    new Arc(root, list, cfg.heroInterval || 3600);
+    new Arc(root, list, cfg.heroSpeed == null ? 0.12 : cfg.heroSpeed);
   }
 
-  function Arc(root, list, interval) {
+  function Arc(root, list, speed) {
     const stage = root.querySelector('[data-arc-stage]');
     const countEl = root.querySelector('[data-arc-count]');
     const titleEl = root.querySelector('[data-arc-title]');
@@ -78,7 +78,7 @@
 
     // 半円が途切れないよう、少ない時は複製して6枚以上にする
     const items = [];
-    let copies = Math.max(1, Math.ceil(6 / list.length));
+    const copies = Math.max(1, Math.ceil(6 / list.length));
     for (let c = 0; c < copies; c++) {
       list.forEach((w, i) => {
         const cat = w.category === 'banner' ? 'banner' : 'lp';
@@ -94,29 +94,46 @@
       });
     }
     const N = items.length;
-
-    let offset = 0, target = 0, hover = false, drag = null, visible = true, last = 0, timer = 0;
-    let W = 0, H = 0, mode = '';
-    const measure = () => {
-      W = stage.clientWidth; H = stage.clientHeight; mode = narrow.matches ? 'h' : 'v';
-      // カードの基準サイズ
-      const cw = mode === 'v' ? Math.min(H * 0.5, W * 0.62) : Math.min(W * 0.62, H * 1.15, 420);
-      root.style.setProperty('--card-w', cw + 'px');
-      root._cw = cw;
-    };
     const wrap = (p) => { p = ((p % N) + N) % N; return p >= N / 2 ? p - N : p; };
 
+    // 縦（PC）の半円。正面を原点に、右側に中心がある円の上に並べる
+    const ARC_STEP = 24 * Math.PI / 180;
+    const arcPos = (p, cw, R) => {
+      const th = p * ARC_STEP;
+      const s = 1 / (1 + 0.52 * Math.abs(p));
+      return { x: R * (1 - Math.cos(th)), y: R * Math.sin(th), s, w: cw * s, h: cw * 0.75 * s };
+    };
+
+    let W = 0, H = 0, mode = '', cw = 0, R = 0, fx = 0;
+    function measure() {
+      W = stage.clientWidth; H = stage.clientHeight; mode = narrow.matches ? 'h' : 'v';
+      if (mode === 'v') {
+        // 画面の幅・高さに収まるように全体を縮める（見切れ防止）
+        const cw0 = H * 0.5, R0 = H * 0.56;
+        let l = 0, r = 0, t = 0, b = 0;
+        for (let p = -3; p <= 3; p += 0.25) {
+          const g = arcPos(p, cw0, R0);
+          l = Math.min(l, g.x - g.w / 2); r = Math.max(r, g.x + g.w / 2);
+          if (Math.abs(p) <= 2) { t = Math.min(t, g.y - g.h / 2); b = Math.max(b, g.y + g.h / 2); }
+        }
+        const f = Math.min(1, (W - 24) / (r - l), H / (b - t));
+        cw = cw0 * f; R = R0 * f;
+        fx = W - 12 - r * f; // 一番右の実績が画面の右端に収まる位置に正面を置く
+      } else {
+        cw = Math.min(W * 0.62, H * 1.15, 420);
+      }
+      root.style.setProperty('--card-w', cw + 'px');
+    }
+
+    let offset = 0, target = 0;
     function layout() {
-      const cw = root._cw, ch = cw * 0.75;
+      const ch = cw * 0.75;
       items.forEach((el, i) => {
         const p = wrap(i - offset), ap = Math.abs(p);
         let x, y, s, o;
         if (mode === 'v') {
-          // 右側に中心を置いた円周上に並べる（正面が一番左に張り出す）
-          const R = H * 0.56, th = p * 24 * Math.PI / 180;
-          const px = W + R * 0.1;
-          x = px - R * Math.cos(th) - R * 0.1; y = H / 2 + R * Math.sin(th);
-          s = 1 / (1 + 0.52 * ap);
+          const g = arcPos(p, cw, R);
+          x = fx + g.x; y = H / 2 + g.y; s = g.s;
           o = Math.max(0, 1 - 0.26 * ap) * (ap > 3.2 ? Math.max(0, (3.7 - ap) / 0.5) : 1);
         } else {
           x = W / 2 + Math.sign(p) * cw * (0.62 * Math.min(ap, 1) + 0.42 * Math.max(0, ap - 1));
@@ -136,7 +153,7 @@
 
     let shown = -1;
     function updateLabel() {
-      const i = ((Math.round(target) % N) + N) % N;
+      const i = ((Math.round(offset) % N) + N) % N;
       if (i === shown) return;
       shown = i;
       const el = items[i];
@@ -144,44 +161,33 @@
       if (titleEl) titleEl.textContent = el._work.title;
     }
 
+    // 常にゆっくり流れ続ける。クリックやドラッグで送った分はなめらかに追いつく
+    let drag = null, moved = false, visible = true, last = 0, raf = 0;
     function frame(t) {
       const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
-      if (!drag) offset += (target - offset) * (1 - Math.exp(-dt * (reduce ? 30 : 4.2)));
-      if (Math.abs(target - offset) < 0.0005) offset = target;
-      layout();
+      if (!drag && !reduce && !document.hidden) target += speed * dt;
+      if (!drag) offset += (target - offset) * (1 - Math.exp(-dt * 4.2));
+      layout(); updateLabel();
       raf = visible ? requestAnimationFrame(frame) : 0;
     }
-    let raf = 0;
     const run = () => { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } };
 
-    const go = (d) => { target = Math.round(target) + d; updateLabel(); };
-    const tick = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => { if (!hover && !drag && visible && !document.hidden) go(1); tick(); }, interval);
-    };
-
-    // カーソルを重ねている間は止める
-    root.addEventListener('mouseenter', () => { hover = true; });
-    root.addEventListener('mouseleave', () => { hover = false; tick(); });
+    // キーボードで選んだ実績を正面に（マウスのクリックは click 側で処理）
     root.addEventListener('focusin', (e) => {
-      hover = true;
-      // キーボードで選んだ実績を正面に（クリック時は click 側で処理）
       const i = items.indexOf(e.target.closest('.arc-item'));
-      if (i >= 0 && e.target.matches(':focus-visible')) { target = target + wrap(i - target); updateLabel(); }
+      if (i >= 0 && e.target.matches(':focus-visible')) target += wrap(i - target);
     });
-    root.addEventListener('focusout', () => { hover = false; });
 
     // 正面以外をクリックしたら正面に送る。正面は詳細ページへ
     stage.addEventListener('click', (e) => {
       const el = e.target.closest('.arc-item');
       if (!el) return;
       if (moved) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-      const p = wrap(items.indexOf(el) - target);
-      if (Math.abs(p) > 0.5) { e.preventDefault(); e.stopImmediatePropagation(); target += Math.round(p); updateLabel(); tick(); }
+      const p = wrap(items.indexOf(el) - offset);
+      if (Math.abs(p) > 0.5) { e.preventDefault(); e.stopImmediatePropagation(); target += wrap(items.indexOf(el) - target); }
     }, true);
 
     // ドラッグ・スワイプで送る
-    let moved = false;
     stage.addEventListener('pointerdown', (e) => {
       if (e.button) return;
       drag = { x: e.clientX, y: e.clientY, start: offset };
@@ -192,14 +198,13 @@
       const d = mode === 'v' ? e.clientY - drag.y : e.clientX - drag.x;
       if (Math.abs(d) > 6) moved = true;
       if (!moved) return;
-      offset = target = drag.start - d / (root._cw * (mode === 'v' ? 0.55 : 0.6));
+      offset = target = drag.start - d / (cw * (mode === 'v' ? 0.55 : 0.6));
       run();
     });
     const end = () => {
       if (!drag) return;
       drag = null;
       target = Math.round(target);
-      updateLabel(); tick();
     };
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
@@ -213,103 +218,7 @@
     narrow.addEventListener('change', () => { measure(); layout(); });
 
     measure(); layout(); updateLabel(); run();
-    if (!reduce) tick();
     root.classList.add('is-built');
-  }
-
-  /* ---------- トップページ ---------- */
-  async function initTop() {
-    const track = document.querySelector('[data-works="top"]');
-    if (!track) return;
-    const slider = track.closest('[data-works-slider]');
-    let works;
-    try { works = await loadWorks(); } catch (e) { showError(track, e); return; }
-    const n = cfg.topWorksCount || 12;
-    const loop = Slider(slider, track);
-    const render = (cat) => {
-      const list = works.filter((w) => cat === 'all' || w.category === cat).slice(0, n);
-      if (!list.length) { track.innerHTML = '<p class="works-empty">この種類の実績は準備中です。</p>'; loop.reset(false); return; }
-      track.innerHTML = list.map(cardHTML).join('');
-      loop.reset(true);
-      window.Site.Reveal.observe(track);
-    };
-    const filter = document.querySelector('[data-filter]');
-    if (filter) renderFilter(filter, works, 'all', render);
-    render('all');
-  }
-
-  // 自動で左へ流れ続けるスライダー。カーソルを重ねる・フォーカス・タッチ中は止まる
-  function Slider(root, track) {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const speed = cfg.sliderSpeed || 40;
-    let x = 0, setW = 0, last = 0, raf = 0, hover = false, inView = true, active = false;
-
-    function fill() {
-      const originals = Array.from(track.children);
-      if (!originals.length) return;
-      // 1周分が画面幅より短いと隙間ができるので、足りるまで並べてから2周分にする
-      let base = originals;
-      track.innerHTML = '';
-      base.forEach((el) => track.appendChild(el));
-      let guard = 0;
-      while (track.scrollWidth < root.clientWidth + 1 && guard++ < 10) {
-        originals.forEach((el) => track.appendChild(cloneOf(el)));
-      }
-      base = Array.from(track.children);
-      setW = track.scrollWidth;
-      base.forEach((el) => track.appendChild(cloneOf(el)));
-    }
-    function cloneOf(el) {
-      const c = el.cloneNode(true);
-      c.setAttribute('aria-hidden', 'true');
-      c.setAttribute('tabindex', '-1');
-      c.querySelectorAll('[data-reveal-bound]').forEach((n) => delete n.dataset.revealBound);
-      delete c.dataset.revealBound;
-      return c;
-    }
-    function frame(now) {
-      const dt = Math.min(64, now - last) / 1000;
-      last = now;
-      if (!hover) {
-        x -= speed * dt;
-        if (x <= -setW) x += setW;
-        track.style.transform = `translate3d(${x}px,0,0)`;
-      }
-      raf = requestAnimationFrame(frame);
-    }
-    function run() {
-      cancelAnimationFrame(raf);
-      if (reduce || !active || !inView || document.hidden || !setW) return;
-      last = performance.now();
-      raf = requestAnimationFrame(frame);
-    }
-
-    root.addEventListener('mouseenter', () => { hover = true; });
-    root.addEventListener('mouseleave', () => { hover = false; });
-    root.addEventListener('focusin', () => { hover = true; });
-    root.addEventListener('focusout', () => { hover = false; });
-    root.addEventListener('touchstart', () => { hover = true; }, { passive: true });
-    root.addEventListener('touchend', () => { setTimeout(() => { hover = false; }, 1200); }, { passive: true });
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([en]) => { inView = en.isIntersecting; run(); }).observe(root);
-    }
-    document.addEventListener('visibilitychange', run);
-    let rt;
-    window.addEventListener('resize', () => {
-      clearTimeout(rt);
-      rt = setTimeout(() => { if (!active) return; const html = track.dataset.src; track.innerHTML = html; fill(); x = 0; window.Site.Reveal.observe(track); run(); }, 200);
-    });
-
-    return {
-      reset(on) {
-        active = on && !reduce;
-        x = 0;
-        track.style.transform = '';
-        root.classList.toggle('is-static', !active);
-        if (active) { track.dataset.src = track.innerHTML; fill(); }
-        run();
-      }
-    };
   }
 
   /* ---------- 実績一覧ページ ---------- */
@@ -439,7 +348,6 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     initHero();
-    initTop();
     initList();
     initDetail();
   });
