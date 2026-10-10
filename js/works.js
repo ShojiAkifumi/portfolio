@@ -198,9 +198,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const page = document.body.dataset.page;
-    if (page === 'home') initTop();
-    if (page === 'works') initList();
-    if (page === 'work') initDetail();
+    initTop();
+    initList();
+    initDetail();
   });
 })();
