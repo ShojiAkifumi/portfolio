@@ -127,8 +127,11 @@
       const th = p * ARC_STEP;
       const s = 1 / (1 + 0.68 * Math.abs(p));
       const w = cw * s;
+      // 正面のすぐ後ろ（1番目・2番目）は40pxほど右へずらす
+      const ap = Math.abs(p);
+      const shift = 40 * Math.min(ap, 1) * Math.min(Math.max(3 - ap, 0), 1);
       // 右端が円に沿うように置く（奥の実績の右端が正面より右に来る）
-      return { x: (cw - w) / 2 + R * (1 - Math.cos(th)), y: R * Math.sin(th), s, w, h: cw * 0.75 * s };
+      return { x: (cw - w) / 2 + R * (1 - Math.cos(th)) + shift, y: R * Math.sin(th), s, w, h: cw * 0.75 * s };
     };
 
     let W = 0,
