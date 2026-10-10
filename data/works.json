@@ -1,0 +1,188 @@
+[
+  {
+    "id": "lp-fujihakuen",
+    "title": "旅館LP「富士白苑」",
+    "category": "lp",
+    "type": "自主制作",
+    "industry": "旅館",
+    "date": "2026-10-10",
+    "role": ["デザイン", "コーディング"],
+    "period": "2週間",
+    "tools": ["Figma", "Photoshop", "HTML/CSS"],
+    "summary": "静謐な富士の宿をテーマに、写真と余白で空気感を伝える旅館LP。",
+    "purpose": "公式予約サイトからの宿泊予約を増やす。あわせて空室確認・電話問い合わせ・LINE／SNSフォローにつなげる。",
+    "points": [
+      "「静謐な富士の宿」をテーマに、写真を大きく、余白を広く、文字は少なく構成",
+      "スクロールするほど旅館の空気が少しずつ伝わるページ展開"
+    ],
+    "result": "",
+    "url": "https://shojiakifumi.github.io/lp-fujihakuen/",
+    "images": {
+      "mockup": "images/works/lp-fujihakuen/mockup.webp",
+      "pc": "images/works/lp-fujihakuen/pc.webp",
+      "sp": "images/works/lp-fujihakuen/sp.jpg"
+    }
+  },
+  {
+    "id": "banner-tax-seminar",
+    "title": "士業 無料相談会バナー",
+    "category": "banner",
+    "type": "自主制作",
+    "industry": "士業",
+    "date": "2026-10-10",
+    "role": ["デザイン"],
+    "period": "1週間",
+    "tools": ["Figma"],
+    "summary": "税理士事務所の無料相談会へ予約を集める正方形の広告バナー。",
+    "purpose": "節税・確定申告に悩む人へ、税理士に直接聞ける無料相談会を告知し、予約につなげる。",
+    "points": [
+      "左上からコピーを配置し、視線が下部のCTAへ自然に流れるレイアウト",
+      "ネイビー・白にアクセントのイエローで、誠実さと権威性を表現",
+      "日時・場所・特典を情報ブロックにまとめ、ひと目で参加条件がわかるように"
+    ],
+    "specs": [
+      { "label": "サイズ", "value": "1080 × 1080px（正方形の広告バナー）" },
+      { "label": "雰囲気", "value": "誠実・丁寧・真面目・権威性" },
+      { "label": "配色", "value": "ネイビー・白・アクセントにイエロー" },
+      { "label": "ヘッドコピー", "value": "節税・確定申告でお困りの方へ" },
+      { "label": "キャッチコピー", "value": "税理士に直接聞ける無料相談会" },
+      { "label": "CTA", "value": "無料相談を予約する" }
+    ],
+    "result": "",
+    "url": "",
+    "images": {
+      "banner": "images/works/banner-tax-seminar/banner.webp"
+    }
+  },
+  {
+    "id": "banner-raffine-gym",
+    "title": "女性向けパーソナルジム バナー",
+    "category": "banner",
+    "type": "自主制作",
+    "industry": "パーソナルジム",
+    "date": "2026-10-10",
+    "role": ["デザイン"],
+    "period": "1週間",
+    "tools": ["Figma"],
+    "summary": "立川駅近くの女性向けパーソナルジムの魅力を一枚で伝える広告バナー。",
+    "purpose": "女性に向けて、駅近・完全個室・長めのセッションという強みを伝え、来店・体験につなげる。",
+    "points": [
+      "左上から「立川駅徒歩4分」を大きく配置し、立地の強みを最初に伝える",
+      "黒・ピンク・ゴールドの配色で、女性向けの爽やかさと上質感を両立",
+      "施設写真を並べ、利用シーンを具体的にイメージできるように"
+    ],
+    "specs": [
+      { "label": "サイズ", "value": "1080 × 1080px（正方形の広告バナー）" },
+      { "label": "雰囲気", "value": "女性向け・爽やか・明るい" },
+      { "label": "配色", "value": "黒・ピンク・ゴールド" },
+      { "label": "ヘッドコピー", "value": "立川駅徒歩4分" },
+      { "label": "キャッチコピー", "value": "完全個室で安心／他店圧倒の1セッション75分" },
+      { "label": "サブコピー", "value": "オリジナル整体メソッド × ウエイトトレーニング" }
+    ],
+    "result": "",
+    "url": "",
+    "images": {
+      "banner": "images/works/banner-raffine-gym/banner.webp"
+    }
+  },
+  {
+    "id": "jwhf",
+    "title": "車いすハンドボールLP",
+    "category": "lp",
+    "type": "実案件",
+    "client": "一般社団法人日本車椅子ハンドボール連盟",
+    "industry": "スポーツ",
+    "date": "2026-10-09",
+    "role": ["デザイン", "コーディング"],
+    "period": "2週間",
+    "tools": ["Figma", "Photoshop", "HTML/CSS"],
+    "summary": "車いすハンドボールの魅力を伝え、応援者・支援者を増やすためのLP。",
+    "purpose": "車いすハンドボールの魅力を伝えて競技への理解を深め、最終的に寄付や企業協賛につなげる。応援者・支援者を増やしたい。",
+    "points": [
+      "ファーストビューに印象的なキャッチコピーを配置し、訪問者の興味を引く",
+      "競技中の写真とアニメーションで、車いすハンドボールの迫力や躍動感を視覚的に伝える"
+    ],
+    "result": "",
+    "url": "https://shojiakifumi.github.io/jwhf/",
+    "images": {
+      "mockup": "images/works/jwhf/mockup.webp",
+      "pc": "images/works/jwhf/pc.webp",
+      "sp": "images/works/jwhf/sp.webp"
+    }
+  },
+  {
+    "id": "lp-ennote",
+    "title": "マッチングアプリLP「ENNOTE」",
+    "category": "lp",
+    "type": "自主制作",
+    "industry": "マッチングサービス",
+    "date": "2026-10-08",
+    "role": ["デザイン", "コーディング"],
+    "period": "2週間",
+    "tools": ["Figma", "Photoshop", "HTML/CSS"],
+    "summary": "一般的なマッチングアプリとの違いを伝え、価値観診断へ導くLP。",
+    "purpose": "サービス名は知っているが、一般的なマッチングアプリとの違いが分からず迷っている人に違いを伝える。",
+    "points": [
+      "白と淡いグラデーションを基調に、明るく軽やかに",
+      "丸みのある見出し書体と広い余白で「肩の力が抜けた出会い」を表現",
+      "ロゴの青→紫→ピンクのグラデーションを、ボタンと強調だけに絞って使用",
+      "数字のセクションだけ濃紺にして、ページにメリハリと信頼感を出す"
+    ],
+    "result": "",
+    "url": "https://shojiakifumi.github.io/lp-ennote/",
+    "images": {
+      "mockup": "images/works/lp-ennote/mockup.webp",
+      "pc": "images/works/lp-ennote/pc.webp",
+      "sp": "images/works/lp-ennote/sp.jpg"
+    }
+  },
+  {
+    "id": "lp-sugutabe",
+    "title": "野菜の産直宅配サービスLP「スグ食べ」",
+    "category": "lp",
+    "type": "自主制作",
+    "industry": "飲食・宅配",
+    "date": "2026-10-01",
+    "role": ["デザイン", "コーディング"],
+    "period": "2週間",
+    "tools": ["Figma", "Photoshop", "HTML/CSS"],
+    "summary": "リスティング広告の受け皿として、お試し購入へ導く産直野菜のLP。",
+    "purpose": "リスティング広告の出稿にあわせ、より訴求力の高いLPが必要に。食へのこだわりが強い層に響く内容で、まずはお試し購入へ導く。",
+    "points": [
+      "ターゲットの主婦世代女性に向けて、ナチュラルで明るく清潔感のあるトーンに",
+      "鮮度や安心感が伝わる写真で、商品の魅力を視覚的に訴求",
+      "農家の顔や栽培へのこだわりを紹介し、生産者への信頼感を高める"
+    ],
+    "result": "",
+    "url": "https://shojiakifumi.github.io/lp-sugutabe/",
+    "images": {
+      "mockup": "images/works/lp-sugutabe/mockup.webp",
+      "pc": "images/works/lp-sugutabe/pc.webp",
+      "sp": "images/works/lp-sugutabe/sp.webp"
+    }
+  },
+  {
+    "id": "profile",
+    "title": "プロフィールサイト",
+    "category": "lp",
+    "type": "自主制作",
+    "industry": "プロフィールサイト",
+    "date": "2026-09-26",
+    "role": ["デザイン", "コーディング"],
+    "period": "1週間",
+    "tools": ["Figma", "Photoshop", "HTML/CSS"],
+    "summary": "自身のプロフィール・趣味・特技を知ってもらうためのサイト。",
+    "purpose": "自身のプロフィール、趣味、特技を知ってもらう。",
+    "points": [
+      "名前を前面に出し、誰のサイトなのかをすぐに把握できる構成。最初に名前を認識してもらい、個人のブランドとして記憶に残りやすくする",
+      "音楽・ゲーム制作・バイクツーリングを紹介。スキルだけでは分からない個性や、会話のきっかけを提供できる構成に"
+    ],
+    "result": "",
+    "url": "https://shojiakifumi.github.io/profile/",
+    "images": {
+      "mockup": "images/works/profile/mockup.webp",
+      "pc": "images/works/profile/pc.webp",
+      "sp": "images/works/profile/sp.webp"
+    }
+  }
+]
