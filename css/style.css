@@ -181,11 +181,6 @@ button {
   letter-spacing: 0.12em;
   line-height: 1;
 }
-.logo__word {
-  display: block;
-  height: 21px;
-  width: auto;
-}
 .logo__text small {
   display: block;
   font-family: var(--font-body);
