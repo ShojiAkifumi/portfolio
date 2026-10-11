@@ -1160,7 +1160,7 @@ html:not(.ink-masks) .ink-edge {
 .service-mini {
   margin-top: clamp(14px, 1.6vw, 20px);
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(10px, 1.2vw, 16px);
 }
 .service-mini__item {
