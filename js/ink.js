@@ -100,7 +100,8 @@
       float ten=mix(.5,fbm(dir*2.4+d*1.6),smoothstep(0.,.4,d));
       float fine=fbm(p*6.);
       float e1=uR*(.6+.75*n)+(ten-.5)*.42*uR+(fine-.5)*.08*uR;
-      float outer=smoothstep(e1-.03,e1+.03,d);
+      // 輪郭はくっきりさせず、外へ向かってふわっと消える
+      float outer=smoothstep(e1-.1,e1+.08,d);
       // 次の画面が見える範囲の境目（JS の clip-path と同じ）。そのすぐ内側までインクを重ねて継ぎ目を隠す
       float th=atan(p.y,p.x);
       float rc=rcAt((th+3.14159265)/6.28318531*uRcN);
@@ -108,10 +109,12 @@
       float cloud=fbm(p*2.2+vec2(n*2.,ten));
       vec3 ink=mix(vec3(.80,.92,.99),vec3(.47,.70,.94),smoothstep(.35,.75,cloud));
       ink=mix(ink,vec3(.667),smoothstep(.58,.8,fbm(p*1.6+7.))*.4);
-      float pool=smoothstep(e1-.07,e1,d)*(1.-outer);
-      ink=mix(ink,vec3(.40,.62,.90),pool*.35);
+      // ふちは濃くせず、白っぽく淡くする
+      float rim=smoothstep(e1-.22,e1+.04,d);
+      ink=mix(ink,vec3(.86,.94,1.),rim*.55);
       float wisp=smoothstep(.55,.7,fbm(vec2(p.x*1.4,p.y*5.)+cloud*1.5));
       ink=mix(ink,vec3(1.),wisp*.4);
+      band*=1.-rim*.55;
 
       vec4 col=vec4(0.);
       col=over(col, vec3(1.), outer*uPaper);
