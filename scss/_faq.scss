@@ -1,6 +1,10 @@
 @use "mixins" as *;
 
 // よくある質問（<details> のアコーディオン。開閉のアニメーションは src/faq.ts）
+// セクションの上下の余白は、ほかのセクションより少し狭め
+#faq {
+  padding-block: clamp(72px, 9vw, 128px);
+}
 .faq {
   display: grid;
   gap: 12px;
