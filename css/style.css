@@ -103,6 +103,10 @@ button {
   padding-inline: var(--gutter);
 }
 
+.d-inline-block {
+  display: inline-block;
+}
+
 /* ---------- 画面切り替え ---------- */
 /* JS が動く時だけ、最初は白い紙で覆う（3秒で必ず消える保険つき） */
 .is-covered body::after {
