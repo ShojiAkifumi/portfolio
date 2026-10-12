@@ -1,10 +1,11 @@
 # ショウジアキフミ ポートフォリオサイト
 
 バナー・LP制作の実績を掲載し、お問い合わせにつなげるポートフォリオサイトです。
-HTML / CSS / Vanilla JS のみで作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
+HTML / CSS / TypeScript で作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
+公開用のファイルは `npm run build` で圧縮して `dist/` に書き出します（JS・CSS・HTML の圧縮、ファイル名にハッシュを付けた長期キャッシュ）。
 
 - URL は `/`（トップ）、`/works`（実績一覧）、`/works/実績ID`（実績詳細）です。以前の `works.html`・`work.html?id=` で開いた場合も、新しいURLに切り替わります。
-- どのURLで開いても `index.html` を返す設定が必要です。Cloudflare Pages はルートに `404.html` がなければ自動でそうなります（`404.html` は置かないでください）。手元では `npm run serve`（`serve.json` の設定）で同じ動きになります。
+- どのURLで開いても `index.html` を返す設定が必要です。Cloudflare Pages はルートに `404.html` がなければ自動でそうなります（`404.html` は置かないでください）。手元では `npm run dev` で同じ動きになります。
 - サイトのルート（`/`）に置く前提です。`https://〇〇.github.io/portfolio/` のようなサブフォルダでは画像などが読み込めません。
 
 ## ファイル構成
@@ -12,14 +13,19 @@ HTML / CSS / Vanilla JS のみで作ったSPA（1つの `index.html` の中で�
 | パス | 内容 |
 |---|---|
 | `index.html` | サイトの土台とトップの中身（ファーストビューの実績スライダー・強み・料金・流れ・プロフィール・お問い合わせ） |
-| `js/views.js` | 実績一覧・実績詳細・404 の画面の中身 |
-| `js/main.js` | 画面の切り替え（URLと画面の対応、インクのにじみで切り替え）と共通の演出 |
-| `js/works.js` | 実績一覧（LP / バナーで絞り込み、「もっと見る」で追加表示）・実績詳細・スライダー |
+| `src/views.ts` | 実績一覧・実績詳細・404 の画面の中身 |
+| `src/main.ts` | 画面の切り替え（URLと画面の対応、インクのにじみで切り替え）と共通の演出。ここからサイト全体が動き出します |
+| `src/site.ts` | どの画面でも使う共通の部品（ふわっと登場など） |
+| `src/works.ts` | 実績一覧（LP / バナーで絞り込み、「もっと見る」で追加表示）・実績詳細・スライダー |
+| `src/contact.ts` | お問い合わせフォームの入力チェックと送信 |
 | `data/works.json` | **実績データ。ここに追記すると全ページに反映されます** |
 | `images/works/実績ID/` | 実績ごとの画像 |
-| `js/config.js` | フォームの送信先、SNSの表示、表示件数の設定 |
-| `js/ink.js` | インクのにじみ・最初の雫・画面切り替えの演出（WebGL） |
+| `src/config.ts` | フォームの送信先、SNSの表示、表示件数の設定 |
+| `src/ink.ts` | インクのにじみ・最初の雫・画面切り替えの演出（WebGL） |
+| `css/style.css` | デザイン（ビルド時に圧縮されます） |
+| `tools/build.mjs` | ビルドと、手元確認用のサーバー |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
+| `js/app.js`・`dist/` | ビルドで自動的に作られるファイル（直接編集しないでください。Git にも入りません） |
 
 ## 実績を追加する
 
@@ -83,24 +89,33 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 
 `git add . && git commit -m "実績を追加" && git push` で、数分後にサイトに反映されます。
 
-## 設定（`js/config.js`）
+## 設定（`src/config.ts`）
 
 - `formEndpoint` … お問い合わせフォームの送信先。[FormSubmit](https://formsubmit.co/) を使い、`https://formsubmit.co/ajax/ackeytoday@gmail.com` に送ります。初回の送信時に届く確認メールの「Activate Form」を押すと有効になります。空にすると送信されません
 - `showSns` / `sns` … フッターのSNSアイコン。`showSns: true` にして `url` を入れると表示されます
 
 ## 手元で確認する
 
-`works.json` を読み込むため、ファイルを直接開くのではなくローカルサーバーで確認してください。
+初回だけ `npm install` を実行してから、次のコマンドで確認用のサーバーを起動します。
 
 ```bash
-npm run serve   # → http://localhost:8080
+npm run dev       # → http://localhost:8080（src/ や css/ を保存すると、再読み込みで反映されます）
 ```
+
+公開されるものと同じ圧縮済みのファイルで確認したい時は、次の2つを実行します。
+
+```bash
+npm run build     # 型のチェック → dist/ に圧縮したファイルを書き出し
+npm run preview   # → http://localhost:8081 で dist/ を表示
+```
+
+`npm run typecheck` で TypeScript の型のチェックだけを行えます。
 
 ## 公開する（Cloudflare Pages）
 
 1. Cloudflare のダッシュボードで「Workers & Pages」→「作成」→「Pages」→「Git に接続」を選び、GitHub の `ShojiAkifumi/portfolio` を選びます。
-2. ビルドの設定は、フレームワーク「なし」、ビルドコマンドは空欄、出力ディレクトリは `/` のままにします。
-3. 保存すると `https://〇〇.pages.dev` で公開されます。以後は GitHub の main に push するたびに自動で更新されます。
+2. ビルドの設定は、フレームワーク「なし」、ビルドコマンドは `npm run build`、出力ディレクトリは `dist` にします。
+3. 保存すると `https://〇〇.pages.dev` で公開されます。以後は GitHub の main に push するたびに自動でビルドされ、更新されます。gzip・Brotli での圧縮配信は Cloudflare が自動で行います。
 
 ## 独自ドメイン
 
