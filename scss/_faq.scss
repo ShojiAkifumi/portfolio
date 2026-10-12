@@ -11,13 +11,29 @@
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 20px;
-    box-shadow: var(--shadow);
-    transition:
-      border-color 0.3s var(--ease),
-      box-shadow 0.3s var(--ease);
-    &:has(.faq__q:hover),
+    // 影は他のカード（var(--shadow)）の半分くらいの淡さ
+    box-shadow: 0 15px 30px -18px color-mix(in srgb, var(--deep) 35%, transparent);
     &.is-open {
       border-color: var(--sky);
+    }
+  }
+  // ホバーで少し浮かせる（ふわっと登場の transition は残し、浮き上がりは translate で別に動かす）
+  .js &__item {
+    transition:
+      opacity 1.4s var(--soft) var(--delay, 0s),
+      transform 1.4s var(--soft) var(--delay, 0s),
+      filter 1.4s var(--soft) var(--delay, 0s),
+      translate 0.45s var(--ease),
+      box-shadow 0.45s var(--ease),
+      border-color 0.3s var(--ease);
+  }
+  &__item:not(.is-pending) {
+    @media (hover: hover) {
+      &:has(.faq__q:hover) {
+        border-color: var(--sky);
+        translate: 0 -3px;
+        box-shadow: 0 20px 34px -18px color-mix(in srgb, var(--deep) 42%, transparent);
+      }
     }
   }
   &__q {
@@ -67,12 +83,6 @@
         background-color 0.3s var(--ease),
         border-color 0.3s var(--ease),
         color 0.3s var(--ease);
-    }
-    @media (hover: hover) {
-      &:hover::after {
-        background: var(--mist);
-        border-color: var(--mist);
-      }
     }
     &:focus-visible {
       outline: 2px solid var(--blue);
