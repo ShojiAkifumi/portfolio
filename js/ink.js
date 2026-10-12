@@ -58,7 +58,7 @@
   // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
   //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
   //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
-  //  - 最初の読み込みでは、にじみは出さずに（uInk=0）白い紙（uPaper）を消していき、トップでは先に手前から雫を落とす
+  //  - 最初の読み込み（トップ）では、にじみは出さずに（uInk=0）ページの上に手前から雫を落とす
   const BLOOM_FRAG = `
     precision highp float;
     uniform vec2 uRes;
@@ -123,7 +123,7 @@
       col=over(col, vec3(1.), outer*uPaper);
       // 着地点の影：雫が近づくほど小さく濃くなる
       vec2 q0=(px-uOrigin)/(14.+40.*(1.-uShadow));
-      col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28*uPaper);
+      col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28);
       col=over(col, ink, band*.94);
       // 落ちてくる雫：ロゴと同じ水彩のにじみ。手前ではぼけて大きく、奥へ行くほど小さくくっきり
       vec2 q=(px-uDrop)/max(uDropR,.001);
@@ -367,15 +367,15 @@
       return Promise.race([this.dropReady, new Promise((r) => setTimeout(r, ms))]);
     },
     // にじみを1回再生する
-    //  origin: {x, y}（ビューポートの px） / paper: 外側を白い紙にする / drop: 先に雫を落とす
+    //  origin: {x, y}（ビューポートの px） / drop: 先に雫を落とす / bleed: false ならにじみを広げない
     //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
-    play({ origin, duration = 1700, paper = false, drop = false, onClip, onImpact, done }) {
-      // paper: true のときは、にじみを広げず白い紙をふわっと消して現す
+    //  最初の読み込みは drop: true, bleed: false（ページの上に雫が落ち、着地したらふわっと消える）
+    play({ origin, duration = 1700, drop = false, bleed = true, onClip, onImpact, done }) {
       const g = this.ensure();
       if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
       const gl = g.gl, c = this.canvas;
       c.hidden = false;
-      c.classList.toggle('is-cover', paper);
+      c.classList.toggle('is-cover', drop);
       const vw = window.innerWidth, vh = window.innerHeight;
       const r = g.resize(Math.min(1, 900 / Math.max(vw, 1)) * Math.min(window.devicePixelRatio || 1, 1.5));
       const A = arrival(origin.x, origin.y, r.width, r.height);
@@ -384,11 +384,11 @@
       g.set('uRes', c.width, c.height);
       g.set('uView', r.width, r.height);
       g.set('uOrigin', origin.x, origin.y);
-      g.set('uPaper', paper ? 1 : 0);
-      g.set('uInk', paper ? 0 : 1);
+      g.set('uPaper', 0);
+      g.set('uInk', bleed ? 1 : 0);
       g.set('uRcMax', rcMax);
 
-      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.12秒でだんだん速く落ちる
+      // 雫：奥行き z が 1（目の前）から 14.5（着地点）まで、0.12秒でだんだん速く落ちる
       const DROP = drop ? 120 : 0;
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
@@ -401,12 +401,21 @@
         const t = now - t0;
         if (t < DROP) {
           const x = t / DROP;
-          const z = 1 + 27 * Math.pow(x, 2.3);
+          const z = 1 + 13.5 * Math.pow(x, 2.3);
           g.set('uDrop', origin.x + off.x / z, origin.y + off.y / z);
           g.set('uDropR', R0 / z);
           g.set('uDropSoft', Math.min(0.85, 0.05 + 0.8 / z));
           g.set('uDropA', Math.min(0.92, 0.18 + 0.8 * x));
           g.set('uShadow', Math.pow(x, 1.6));
+        } else if (drop && !bleed) {
+          // 着地したら、少し広がりながらふわっと消える
+          const f = Math.min(1, (t - DROP) / duration);
+          g.set('uDrop', origin.x + off.x / 14.5, origin.y + off.y / 14.5);
+          g.set('uDropR', (R0 / 14.5) * (1 + 0.35 * easeOut(f)));
+          g.set('uDropSoft', 0.05 + 0.25 * f);
+          g.set('uDropA', 0.92 * (1 - f) * (1 - f));
+          g.set('uShadow', Math.max(0, 1 - f * 2));
+          if (!impacted) { impacted = true; onImpact && onImpact(); }
         } else {
           g.set('uDropA', 0);
           g.set('uShadow', drop ? Math.max(0, 1 - (t - DROP) / 200) : 0);
@@ -415,7 +424,6 @@
 
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
-        if (paper) g.set('uPaper', 1 - x * x * (3 - 2 * x));
         const R = easeOut(x) * A.rEnd;
         g.set('uR', R);
         reach(A, R, rc);

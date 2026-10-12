@@ -376,7 +376,7 @@
     });
   }
 
-  // 最初の読み込み：トップは雫が手前から落ちて、着地したら白い紙がふわっと消えて現れる（ほかの画面は白い紙が消えて現れるだけ）
+  // 最初の読み込み：トップはページの上に、雫が手前から落ちてくる（ほかの画面は演出なし）
   async function boot() {
     const r = route(new URL(location.href));
     if (r.href !== location.pathname + location.search + location.hash) history.replaceState({ y: 0 }, '', r.href);
@@ -406,16 +406,22 @@
         y: Math.max(window.innerHeight * 0.05, origin.y - window.innerHeight * 0.05)
       };
     }
-    if (home) await Ink.InkTransition.preload(1200);
+    if (!home) {
+      // トップ以外は演出なしで、そのまま現す
+      html.classList.remove('is-covered');
+      ready();
+      return;
+    }
+    await Ink.InkTransition.preload(1200);
     const played = Ink.InkTransition.play({
       origin,
-      duration: 600,
-      paper: true,
-      drop: home,
-      onImpact: () => setTimeout(ready, home ? 250 : 150)
+      duration: 350,
+      drop: true,
+      bleed: false,
+      onImpact: () => setTimeout(ready, 120)
     });
-    // 1コマ目が描かれてから白い覆いを外す
-    requestAnimationFrame(() => requestAnimationFrame(() => html.classList.remove('is-covered')));
+    // 1コマ目が描かれてからページを見せる（白い背景は挟まない）
+    requestAnimationFrame(() => html.classList.remove('is-covered'));
     if (!played) ready();
   }
 
