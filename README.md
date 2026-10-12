@@ -1,11 +1,11 @@
 # ショウジアキフミ ポートフォリオサイト
 
 バナー・LP制作の実績を掲載し、お問い合わせにつなげるポートフォリオサイトです。
-HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
+HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare（Workers）で公開します。
 公開用のファイルは `npm run build` で圧縮して `dist/` に書き出します（SCSS の変換、JS・CSS・HTML の圧縮、ファイル名にハッシュを付けた長期キャッシュ）。
 
 - URL は `/`（トップ）、`/works`（実績一覧）、`/works/実績ID`（実績詳細）です。以前の `works.html`・`work.html?id=` で開いた場合も、新しいURLに切り替わります。
-- どのURLで開いても `index.html` を返す設定が必要です。Cloudflare Pages はルートに `404.html` がなければ自動でそうなります（`404.html` は置かないでください）。手元では `npm run dev` で同じ動きになります。
+- どのURLで開いても `index.html` を返す設定が必要です（`wrangler.jsonc` の `not_found_handling` で設定済みです）。手元では `npm run dev` で同じ動きになります。
 - サイトのルート（`/`）に置く前提です。`https://〇〇.github.io/portfolio/` のようなサブフォルダでは画像などが読み込めません。
 
 ## ファイル構成
@@ -114,12 +114,16 @@ npm run preview   # → http://localhost:8081 で dist/ を表示
 
 `npm run typecheck` で TypeScript の型のチェックだけを行えます。
 
-## 公開する（Cloudflare Pages）
+## 公開する（Cloudflare Workers）
 
-1. Cloudflare のダッシュボードで「Workers & Pages」→「作成」→「Pages」→「Git に接続」を選び、GitHub の `ShojiAkifumi/portfolio` を選びます。
-2. ビルドの設定は、フレームワーク「なし」、ビルドコマンドは `npm run build`、出力ディレクトリは `dist` にします。
-3. 保存すると `https://〇〇.pages.dev` で公開されます。以後は GitHub の main に push するたびに自動でビルドされ、更新されます。gzip・Brotli での圧縮配信は Cloudflare が自動で行います。
+1. Cloudflare のダッシュボードで「Workers & Pages」→「作成」→ GitHub の `ShojiAkifumi/portfolio` を選びます。
+2. ビルドの設定は次のとおりにします。
+   - ビルドコマンド: `npm run build`
+   - デプロイコマンド: `npx wrangler deploy`
+   - ルートディレクトリ（パス）: 空欄（`/`）。`dist` にはしないでください（`dist` はビルドの途中で作られるため、最初は存在しません）
+3. 公開するフォルダ（`dist`）と、どのURLでも `index.html` を返す設定は `wrangler.jsonc` に書いてあります。`wrangler.jsonc` の `name` は、ダッシュボードの Worker 名と同じにしてください。
+4. 以後は GitHub の main に push するたびに自動でビルドされ、更新されます。gzip・Brotli での圧縮配信は Cloudflare が自動で行います。
 
 ## 独自ドメイン
 
-ドメイン取得後、Cloudflare Pages のプロジェクトの「カスタムドメイン」から追加します。
+ドメイン取得後、Cloudflare の Worker の「設定」→「ドメインとルート」から追加します。

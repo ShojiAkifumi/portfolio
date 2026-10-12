@@ -1,0 +1,12 @@
+// Cloudflare Workers での公開設定（npx wrangler deploy がこのファイルを読みます）
+{
+  // Cloudflare のダッシュボードの Worker 名と同じにする
+  "name": "portfolio",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    // npm run build で作られる公開用のファイル
+    "directory": "./dist",
+    // /works などのURLで開いても index.html を返す（SPA）
+    "not_found_handling": "single-page-application"
+  }
+}
