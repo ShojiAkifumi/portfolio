@@ -280,12 +280,8 @@
 
   let current = { view: view0, ctrl: new AbortController(), route: null };
   let busy = false;
-  const instant = (y) => {
-    const html = document.documentElement, prev = html.style.scrollBehavior;
-    html.style.scrollBehavior = 'auto';
-    window.scrollTo(0, Math.max(0, y));
-    html.style.scrollBehavior = prev;
-  };
+  // CSS の scroll-behavior: smooth を無視して、その場で一瞬でスクロール位置を合わせる
+  const instant = (y) => window.scrollTo({ top: Math.max(0, y), left: 0, behavior: 'instant' });
 
   async function navigate(url, { push = true, origin = null, y = null } = {}) {
     if (busy) return;
