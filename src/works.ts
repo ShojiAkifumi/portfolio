@@ -21,6 +21,8 @@ export interface Work {
   specs?: { label: string; value: string }[];
   result?: string;
   url?: string;
+  // 表示順（小さいほど先。空なら表示順のある実績の後ろに、制作日の新しい順）
+  sortOrder?: number;
   thumbnail?: string;
   images?: { mockup?: string; banner?: string; pc?: string; sp?: string };
   _i: number;
@@ -46,10 +48,15 @@ function loadWorks(): Promise<Work[]> {
         return res.json();
       })
       .then((list: Omit<Work, "_i">[]) =>
-        // 新しい順（同じ日付は JSON に書いた順）
+        // 表示順の小さい順 → 制作日の新しい順（同じ日付は JSON の順）
         list
           .map((w, i) => ({ ...w, _i: i }))
-          .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || a._i - b._i),
+          .sort(
+            (a, b) =>
+              (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity) ||
+              String(b.date || "").localeCompare(String(a.date || "")) ||
+              a._i - b._i,
+          ),
       );
     cache.catch(() => (cache = null));
   }

@@ -68,9 +68,11 @@ export function toWork(c) {
       .filter((s) => s.label && s.value),
     result: c.result || "",
     url: c.url || "",
+    sortOrder: typeof c.sortOrder === "number" ? c.sortOrder : undefined,
     images,
   };
   if (!w.client) delete w.client;
+  if (w.sortOrder === undefined) delete w.sortOrder;
   if (!w.specs.length) delete w.specs;
   return w;
 }

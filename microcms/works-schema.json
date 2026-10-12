@@ -73,6 +73,13 @@
       "required": true
     },
     {
+      "fieldId": "sortOrder",
+      "name": "表示順",
+      "kind": "number",
+      "description": "小さい数字ほど先に表示（1, 2, 3…）。空欄の実績は、その後ろに制作日の新しい順で並びます",
+      "required": false
+    },
+    {
       "fieldId": "role",
       "name": "担当",
       "kind": "select",
