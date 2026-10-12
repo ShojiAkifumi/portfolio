@@ -58,7 +58,7 @@
   // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
   //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
   //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
-  //  - 最初の読み込みでは、にじみは出さずに（uInk=0）白い紙（uPaper）を消していき、トップでは先に手前から雫を落とす
+  //  - 最初の読み込みでは、外側を白い紙（uPaper=1）にしてにじみで現し、トップでは先に手前から雫を落とす
   const BLOOM_FRAG = `
     precision highp float;
     uniform vec2 uRes;
@@ -368,9 +368,9 @@
     },
     // にじみを1回再生する
     //  origin: {x, y}（ビューポートの px） / drop: 先に雫を落とす / bleed: false ならにじみを広げない
-    //  paper: 白い紙で覆っておき、（雫の着地後に）duration かけてふわっと消す
+    //  paper: 外側を白い紙で覆う（bleed: false なら、雫の着地後に duration かけてふわっと消す）
     //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
-    //  最初の読み込みは paper: true, bleed: false（トップは drop: true）
+    //  最初の読み込みは paper: true（トップは drop: true）
     play({ origin, duration = 1700, drop = false, bleed = true, paper = false, onClip, onImpact, done }) {
       const g = this.ensure();
       if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
@@ -389,8 +389,8 @@
       g.set('uInk', bleed ? 1 : 0);
       g.set('uRcMax', rcMax);
 
-      // 雫：奥行き z が 1（目の前）から 14.5（着地点）まで、0.12秒でだんだん速く落ちる
-      const DROP = drop ? 120 : 0;
+      // 雫：奥行き z が 1（目の前）から 14.5（着地点）まで、0.2秒でだんだん速く落ちる
+      const DROP = drop ? 200 : 0;
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
@@ -425,7 +425,7 @@
 
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
-        if (paper) g.set('uPaper', 1 - x * x * (3 - 2 * x));
+        if (paper && !bleed) g.set('uPaper', 1 - x * x * (3 - 2 * x));
         const R = easeOut(x) * A.rEnd;
         g.set('uR', R);
         reach(A, R, rc);

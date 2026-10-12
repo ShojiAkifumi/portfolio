@@ -376,7 +376,7 @@
     });
   }
 
-  // 最初の読み込み：トップは雫が手前から落ちて、着地したら白い紙がふわっと消えて現れる（ほかの画面は白い紙が消えて現れるだけ）
+  // 最初の読み込み：トップは雫が手前から落ちて、着地したところからにじみが広がって現れる（ほかの画面はにじみだけ）
   async function boot() {
     const r = route(new URL(location.href));
     if (r.href !== location.pathname + location.search + location.hash) history.replaceState({ y: 0 }, '', r.href);
@@ -409,9 +409,8 @@
     if (home) await Ink.InkTransition.preload(1200);
     const played = Ink.InkTransition.play({
       origin,
-      duration: 600,
+      duration: 1700,
       drop: home,
-      bleed: false,
       paper: true,
       onImpact: () => setTimeout(ready, 40)
     });
