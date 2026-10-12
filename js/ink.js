@@ -389,8 +389,8 @@
       g.set('uPaper', paper ? 1 : 0);
       g.set('uRcMax', rcMax);
 
-      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.5秒でだんだん速く落ちる
-      const DROP = drop ? 500 : 0;
+      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.2秒でだんだん速く落ちる
+      const DROP = drop ? 200 : 0;
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
