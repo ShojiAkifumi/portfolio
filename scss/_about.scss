@@ -171,6 +171,17 @@
     font-variant-numeric: tabular-nums;
   }
 }
+.tools-groups {
+  display: grid;
+  gap: 18px;
+}
+.tools-group__name {
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.08em;
+}
 .tools {
   display: flex;
   flex-wrap: wrap;
