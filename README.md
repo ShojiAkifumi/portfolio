@@ -100,7 +100,7 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 ブラウザから microCMS へは取りに行かないので、表示の速さは変わらず、API キーも外に出ません。
 
 - 同じ ID の実績が両方にある時は、microCMS の内容を使います。
-- すべて microCMS に移したら、`data/works.json` の中身を `[]` にしてください。
+- すべて microCMS に移したら、`data/works.json` と `images/works/` は削除してかまいません（なくてもビルドできます）。
 
 ### 1. microCMS に API を作る（最初の1回）
 

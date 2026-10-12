@@ -5,12 +5,12 @@
 //                 - scss/style.scss（SCSS）を CSS に変換して圧縮
 //                 - index.html の空白・コメントを取り除いて圧縮
 //                 - ファイル名に中身のハッシュを付け、ブラウザに長くキャッシュさせる（_headers）
-//                 - microCMS の設定（環境変数か .env）があれば、実績を microCMS から読み込んで data/works.json に足す
+//                 - microCMS の設定（環境変数か .env）があれば、実績を microCMS から読み込む（data/works.json があれば合わせる）
 // npm run dev   : 手元の確認用。src/ や scss/ を保存するたびに js/app.js・css/style.css を作り直し、
 //                 http://localhost:8080 で表示します
 import * as esbuild from "esbuild";
 import { minify } from "html-minifier-terser";
-import { watch } from "node:fs";
+import { existsSync, watch } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +43,18 @@ const jsOptions = {
 const scssEntry = path.join(root, "scss/style.scss");
 const compileScss = (opts = {}) => sass.compileAsync(scssEntry, { ...opts }).then((r) => r.css);
 
+// 実績：data/works.json（なくても大丈夫）と microCMS を合わせたもの
+async function loadWorks() {
+  const local = await readFile(path.join(root, "data/works.json"), "utf8")
+    .then(JSON.parse)
+    .catch(() => []);
+  if (!microcmsEnabled()) return local;
+  // 読み込めなかった時はビルドを止める（実績が空のまま公開されないように）
+  const remote = await fetchWorks();
+  console.log(`  microCMS から実績を ${remote.length} 件読み込みました`);
+  return mergeWorks(local, remote);
+}
+
 if (dev) {
   // 手元の確認用：保存するたびに js/app.js・css/style.css を作り直し、どの URL でも index.html を返すサーバーで表示
   const writeCss = async () => {
@@ -55,6 +67,11 @@ if (dev) {
     }
   };
   await writeCss();
+  // data/works.json がない時は、microCMS の実績で作る（確認用。Git には入りません）
+  if (microcmsEnabled() && !existsSync(path.join(root, "data/works.json"))) {
+    await mkdir(path.join(root, "data"), { recursive: true });
+    await writeFile(path.join(root, "data/works.json"), JSON.stringify(await loadWorks()));
+  }
   let t = 0;
   watch(path.join(root, "scss"), { recursive: true }, () => {
     clearTimeout(t);
@@ -107,14 +124,8 @@ async function build() {
 
   // 画像と実績データはそのままコピー
   await cp(path.join(root, "images"), path.join(out, "images"), { recursive: true });
-  await cp(path.join(root, "data"), path.join(out, "data"), { recursive: true });
-  if (microcmsEnabled()) {
-    // 読み込めなかった時はビルドを止める（実績が空のまま公開されないように）
-    const local = JSON.parse(await readFile(path.join(root, "data/works.json"), "utf8"));
-    const remote = await fetchWorks();
-    await writeFile(path.join(out, "data/works.json"), JSON.stringify(mergeWorks(local, remote)));
-    console.log(`  microCMS から実績を ${remote.length} 件読み込みました`);
-  }
+  await mkdir(path.join(out, "data"), { recursive: true });
+  await writeFile(path.join(out, "data/works.json"), JSON.stringify(await loadWorks()));
 
   // index.html：JS・CSS をハッシュ付きの名前に差し替えて圧縮
   let html = await readFile(path.join(root, "index.html"), "utf8");
