@@ -1,3 +1,5 @@
+@use "mixins" as *;
+
 /* JS が動く時だけ、最初は白い紙で覆う（3秒で必ず消える保険つき） */
 .is-covered body::after {
   content: "";
@@ -35,4 +37,18 @@
   z-index: 40;
   overflow: hidden;
   background: var(--paper);
+}
+/* スマホのメニューを開いている間は、今の画面を隠す（パネルの後ろに前の画面が透けて見えないように）
+   メニューのリンクで移動する時は、.view--away を付けたまま次の画面に切り替える */
+.view {
+  @include down(nav) {
+    transition:
+      opacity 0.5s,
+      visibility 0.5s;
+    .menu-open &:not(.view--next),
+    &.view--away {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
 }

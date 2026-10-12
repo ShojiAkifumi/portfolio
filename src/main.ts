@@ -303,7 +303,7 @@ let busy = false;
 // CSS の scroll-behavior: smooth を無視して、その場で一瞬でスクロール位置を合わせる
 const instant = (y: number) => window.scrollTo({ top: Math.max(0, y), left: 0, behavior: "instant" });
 
-// keepMenu: スマホのメニューを開いたままにしておき、切り替えのアニメーションが始まるのと同時に閉じる
+// keepMenu: スマホのメニューを開いたままにしておき、切り替えのアニメーションが始まるのと同時に閉じる（前の画面は隠したまま）
 async function navigate(
   url: URL,
   { push = true, origin = null as Point | null, y = null as number | null, keepMenu = false } = {},
@@ -315,7 +315,8 @@ async function navigate(
     history.replaceState({ ...(history.state || {}), y: window.scrollY }, "");
     history.pushState({ y: 0 }, "", r.href);
   }
-  if (!keepMenu) closeMenu();
+  if (keepMenu) current.view.classList.add("view--away");
+  else closeMenu();
   const ctrl = new AbortController();
   const view = buildView(r);
   view.classList.add("view--next");
