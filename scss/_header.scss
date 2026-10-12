@@ -62,6 +62,13 @@
   display: flex;
   align-items: center;
   gap: clamp(16px, 2.4vw, 36px);
+  // TOP はスマホのメニューだけに出す
+  &__top {
+    display: none;
+    @include down(nav) {
+      display: list-item;
+    }
+  }
   &__list {
     display: flex;
     gap: clamp(16px, 2.2vw, 32px);
