@@ -27,6 +27,8 @@ HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面�
 | `scss/_mixins.scss` | メディアクエリの書き方（`@include down(sp)` で640px以下など） |
 | `scss/_base.scss` ほか | セクションごとのデザイン（`_hero`・`_works`・`_contact` など） |
 | `tools/build.mjs` | ビルドと、手元確認用のサーバー |
+| `tools/microcms.mjs` | microCMS から実績を読み込む（ビルドの時だけ） |
+| `microcms/works-schema.json` | microCMS の API スキーマ（インポート用） |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
 | `js/app.js`・`css/style.css`・`dist/` | ビルドで自動的に作られるファイル（直接編集しないでください。Git にも入りません） |
 
@@ -91,6 +93,57 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 ### 3. 公開する
 
 `git add . && git commit -m "実績を追加" && git push` で、数分後にサイトに反映されます。
+
+## microCMS で実績を管理する
+
+実績は microCMS でも管理できます。`npm run build` の時に microCMS から実績を読み込み、`data/works.json` と合わせて公開します。
+ブラウザから microCMS へは取りに行かないので、表示の速さは変わらず、API キーも外に出ません。
+
+- 同じ ID の実績が両方にある時は、microCMS の内容を使います。
+- すべて microCMS に移したら、`data/works.json` の中身を `[]` にしてください。
+
+### 1. microCMS に API を作る（最初の1回）
+
+1. microCMS で API を新しく作ります。API名は「実績」、エンドポイントは **`works`**、型は **リスト形式** にします。
+2. 「APIスキーマを定義」の画面で「ファイルをインポートする場合はこちら」を押し、`microcms/works-schema.json` を選びます。
+3. 「APIキー」で GET だけできるキーを用意します（最初からある「デフォルト」のキーで大丈夫です）。
+
+| 項目 | 入れ方 |
+|---|---|
+| コンテンツID | 実績の URL（`/works/ここ`）になります。登録画面の右側で `lp-xxxx` のように変えてください |
+| カテゴリ・種類 | LP / バナー、自主制作 / 実案件 から選ぶ |
+| 制作日 | 一覧はこの日付の新しい順に並びます |
+| 使用ツール | カンマ区切り（`Figma, Photoshop, HTML/CSS`） |
+| 工夫した点 | 1行に1つ |
+| デザイン仕様（バナー） | 1行に「ラベル：値」（`サイズ：1080 × 1080px`） |
+| 画像 | LP は「一覧用の画像」「PC表示の全体」「スマホ表示の全体」、バナーは「バナー画像」。`npm run capture` で作った画像をアップロードします（WebP に変換して配信されます） |
+
+### 2. Cloudflare に API キーを設定する（最初の1回）
+
+Cloudflare の Workers の画面で、このサイト（portfolio）の **Settings → Builds → Variables and secrets** に次の2つを追加します。
+
+| 名前 | 値 |
+|---|---|
+| `MICROCMS_SERVICE_DOMAIN` | microCMS の URL `https://xxxx.microcms.io` の `xxxx` |
+| `MICROCMS_API_KEY` | microCMS の API キー（Secret にしてください） |
+
+設定がない時は、今までどおり `data/works.json` だけで公開します。microCMS から読み込めなかった時はビルドが止まり、前の状態のまま公開が続きます。
+
+### 3. microCMS で公開したら自動で反映する（最初の1回）
+
+1. Cloudflare の **Settings → Builds → Deploy Hooks** で、ブランチ `main` のフックを作り、URL をコピーします。
+2. microCMS の API 設定 →「Webhook」→「カスタム通知」で、その URL を登録します（通知のタイミングは「コンテンツの公開」「公開終了」など）。
+
+これで microCMS で公開ボタンを押すと、1〜2分ほどでサイトに反映されます。
+
+### 手元で確認する
+
+このフォルダに `.env` を作って下の2行を書くと、`npm run build` → `npm run preview` で microCMS の実績を含めて確認できます（`.env` は Git に入りません）。
+
+```
+MICROCMS_SERVICE_DOMAIN=xxxx
+MICROCMS_API_KEY=xxxxxxxx
+```
 
 ## 設定（`src/config.ts`）
 

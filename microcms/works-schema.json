@@ -1,0 +1,196 @@
+{
+  "apiFields": [
+    {
+      "fieldId": "title",
+      "name": "タイトル",
+      "kind": "text",
+      "description": "例：旅館LP「富士白苑」",
+      "required": true,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "category",
+      "name": "カテゴリ",
+      "kind": "select",
+      "description": null,
+      "required": true,
+      "selectItems": [
+        {
+          "value": "LP"
+        },
+        {
+          "value": "バナー"
+        }
+      ],
+      "multipleSelect": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "type",
+      "name": "種類",
+      "kind": "select",
+      "description": null,
+      "required": true,
+      "selectItems": [
+        {
+          "value": "自主制作"
+        },
+        {
+          "value": "実案件"
+        }
+      ],
+      "multipleSelect": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "client",
+      "name": "クライアント名",
+      "kind": "text",
+      "description": "実案件で名前を出してよい時だけ",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "industry",
+      "name": "業種",
+      "kind": "text",
+      "description": "例：旅館",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "date",
+      "name": "制作日",
+      "kind": "date",
+      "description": "一覧はこの日付の新しい順に並びます",
+      "required": true
+    },
+    {
+      "fieldId": "role",
+      "name": "担当",
+      "kind": "select",
+      "description": null,
+      "required": false,
+      "selectItems": [
+        {
+          "value": "デザイン"
+        },
+        {
+          "value": "コーディング"
+        },
+        {
+          "value": "ディレクション"
+        },
+        {
+          "value": "ライティング"
+        }
+      ],
+      "multipleSelect": true,
+      "initialValue": null
+    },
+    {
+      "fieldId": "period",
+      "name": "制作期間",
+      "kind": "text",
+      "description": "例：2週間",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "tools",
+      "name": "使用ツール",
+      "kind": "text",
+      "description": "カンマ区切り。例：Figma, Photoshop, HTML/CSS",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "summary",
+      "name": "概要",
+      "kind": "textArea",
+      "description": "一覧のカードに出る一文",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "purpose",
+      "name": "目的・課題",
+      "kind": "textArea",
+      "description": null,
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "points",
+      "name": "工夫した点",
+      "kind": "textArea",
+      "description": "1行に1つ",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "specs",
+      "name": "デザイン仕様",
+      "kind": "textArea",
+      "description": "バナー用。1行に「ラベル：値」（例：サイズ：1080 × 1080px）",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "result",
+      "name": "成果",
+      "kind": "textArea",
+      "description": null,
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "url",
+      "name": "公開URL",
+      "kind": "text",
+      "description": null,
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "mockup",
+      "name": "一覧用の画像（LP）",
+      "kind": "media",
+      "description": "PC・スマホの合成画像（npm run capture -- lp で作れます）",
+      "required": false
+    },
+    {
+      "fieldId": "banner",
+      "name": "バナー画像",
+      "kind": "media",
+      "description": null,
+      "required": false
+    },
+    {
+      "fieldId": "pc",
+      "name": "PC表示の全体（LP）",
+      "kind": "media",
+      "description": null,
+      "required": false
+    },
+    {
+      "fieldId": "sp",
+      "name": "スマホ表示の全体（LP）",
+      "kind": "media",
+      "description": null,
+      "required": false
+    }
+  ],
+  "customFields": []
+}

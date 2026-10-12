@@ -6,3 +6,6 @@ dist/
 js/app.js
 js/app.js.map
 css/style.css
+
+# microCMS の API キー（手元用）
+.env

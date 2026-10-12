@@ -31,6 +31,8 @@
     <!-- 最初の雫の画像と実績データは、JS より先に読み込みを始めておく -->
     <link rel="preload" href="images/ink-drop.png" as="image" />
     <link rel="preload" href="data/works.json" as="fetch" crossorigin />
+    <!-- microCMS に登録した実績の画像の配信元 -->
+    <link rel="preconnect" href="https://images.microcms-assets.io" />
     <!-- src/*.ts をまとめたもの（npm run dev / npm run build で作られます） -->
     <script src="js/app.js" defer></script>
     <script>

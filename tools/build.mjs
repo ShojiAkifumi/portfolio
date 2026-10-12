@@ -5,6 +5,7 @@
 //                 - scss/style.scss（SCSS）を CSS に変換して圧縮
 //                 - index.html の空白・コメントを取り除いて圧縮
 //                 - ファイル名に中身のハッシュを付け、ブラウザに長くキャッシュさせる（_headers）
+//                 - microCMS の設定（環境変数か .env）があれば、実績を microCMS から読み込んで data/works.json に足す
 // npm run dev   : 手元の確認用。src/ や scss/ を保存するたびに js/app.js・css/style.css を作り直し、
 //                 http://localhost:8080 で表示します
 import * as esbuild from "esbuild";
@@ -14,12 +15,19 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as sass from "sass";
+import { fetchWorks, mergeWorks, microcmsEnabled } from "./microcms.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "dist");
 const dev = process.argv.includes("--dev");
 const preview = process.argv.includes("--preview");
 // 対応ブラウザ（この範囲で動く書き方に変換されます）
+// 手元では .env に MICROCMS_SERVICE_DOMAIN・MICROCMS_API_KEY を書いておけば読み込みます（Cloudflare では環境変数に設定）
+try {
+  process.loadEnvFile(path.join(root, ".env"));
+} catch {
+  /* .env がなければ何もしない */
+}
 const target = ["es2020", "chrome100", "edge100", "firefox100", "safari15"];
 
 const jsOptions = {
@@ -100,6 +108,13 @@ async function build() {
   // 画像と実績データはそのままコピー
   await cp(path.join(root, "images"), path.join(out, "images"), { recursive: true });
   await cp(path.join(root, "data"), path.join(out, "data"), { recursive: true });
+  if (microcmsEnabled()) {
+    // 読み込めなかった時はビルドを止める（実績が空のまま公開されないように）
+    const local = JSON.parse(await readFile(path.join(root, "data/works.json"), "utf8"));
+    const remote = await fetchWorks();
+    await writeFile(path.join(out, "data/works.json"), JSON.stringify(mergeWorks(local, remote)));
+    console.log(`  microCMS から実績を ${remote.length} 件読み込みました`);
+  }
 
   // index.html：JS・CSS をハッシュ付きの名前に差し替えて圧縮
   let html = await readFile(path.join(root, "index.html"), "utf8");
