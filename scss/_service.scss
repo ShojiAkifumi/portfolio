@@ -107,6 +107,9 @@
   padding: clamp(22px, 3vw, 36px);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--mist) 70%, var(--paper));
+  @include down(sp) {
+    padding: 22px 14px;
+  }
   &__head {
     font-family: var(--font-head);
     font-weight: 700;
@@ -119,12 +122,22 @@
     gap: clamp(20px, 3vw, 44px);
     @include down(price) {
       grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
     }
   }
   &__notes {
     margin: clamp(16px, 2vw, 22px) 0 0;
     font-size: 0.8rem;
     color: var(--ink-soft);
+  }
+}
+/* 1列になる幅では、分類ごとに白いカードにして、どこからどこまでが同じ分類か分かるようにする */
+.price-group {
+  @include down(price) {
+    padding: 16px 18px 6px;
+    border-radius: calc(var(--radius) * 0.75);
+    background: var(--paper);
+    border: 1px solid color-mix(in srgb, var(--sky) 60%, var(--line));
   }
 }
 .price-group__title {
@@ -136,6 +149,10 @@
   margin: 0 0 6px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--sky);
+  @include down(price) {
+    font-size: 1.05rem;
+    margin-bottom: 2px;
+  }
 }
 .price-group__title span {
   font-family: var(--font-en);
