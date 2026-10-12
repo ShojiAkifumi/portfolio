@@ -1,0 +1,50 @@
+// よくある質問：<details> の開閉を高さのアニメーションでやわらかく動かす
+import { reduceMotion } from "./ink";
+import { $$ } from "./site";
+
+const EASE = "cubic-bezier(0.33, 0.1, 0.2, 1)";
+
+function animate(item: HTMLDetailsElement, summary: HTMLElement, opening: boolean) {
+  const answer = item.querySelector<HTMLElement>(".faq__a");
+  const closed = summary.offsetHeight;
+  const from = item.offsetHeight;
+  if (opening) item.open = true;
+  const to = opening ? item.scrollHeight : closed;
+  item.classList.toggle("is-open", opening);
+  item.getAnimations().forEach((a) => a.cancel());
+  answer?.getAnimations().forEach((a) => a.cancel());
+  const duration = Math.min(520, 300 + Math.abs(to - from) * 0.8);
+  const anim = item.animate({ height: [`${from}px`, `${to}px`] }, { duration, easing: EASE });
+  answer?.animate(
+    opening
+      ? { opacity: [0, 1], transform: ["translateY(-6px)", "translateY(0)"] }
+      : { opacity: [1, 0], transform: ["translateY(0)", "translateY(-6px)"] },
+    { duration: duration * 0.9, easing: EASE, fill: "forwards" },
+  );
+  anim.onfinish = () => {
+    if (!opening) item.open = false;
+    answer?.getAnimations().forEach((a) => a.cancel());
+  };
+}
+
+function init(scope: ParentNode, signal: AbortSignal) {
+  $$<HTMLDetailsElement>(".faq__item", scope).forEach((item) => {
+    const summary = item.querySelector<HTMLElement>(".faq__q");
+    if (!summary) return;
+    item.classList.toggle("is-open", item.open);
+    summary.addEventListener(
+      "click",
+      (e) => {
+        if (reduceMotion) {
+          item.classList.toggle("is-open", !item.open);
+          return;
+        }
+        e.preventDefault();
+        animate(item, summary, !item.classList.contains("is-open"));
+      },
+      { signal },
+    );
+  });
+}
+
+export const Faq = { init };
