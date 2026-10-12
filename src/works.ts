@@ -433,7 +433,7 @@ async function initList(scope: ParentNode, signal: AbortSignal): Promise<void> {
     showError(grid, e);
     return;
   }
-  const per = cfg.worksPerPage || 12;
+  const per = cfg.worksPerPage || 6;
   const moreBox = scope.querySelector<HTMLElement>("[data-more]");
   const moreBtn = moreBox && moreBox.querySelector("button");
   const box = grid;

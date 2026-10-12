@@ -25,6 +25,6 @@ export const SITE_CONFIG: SiteConfig = {
   heroWorksCount: 8,
   // スライダーが1枚分動く間隔（ミリ秒）
   heroInterval: 3600,
-  // 実績一覧ページで一度に表示する数
-  worksPerPage: 12,
+  // 実績一覧ページで一度に表示する数（それより多い時だけ「もっと見る」ボタンが出ます）
+  worksPerPage: 6,
 };
