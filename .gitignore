@@ -9,3 +9,6 @@ css/style.css
 
 # microCMS の API キー（手元用）
 .env
+# 実績は microCMS で管理（npm run dev が作る確認用の実績データと、capture で作った画像）
+data/
+images/works/

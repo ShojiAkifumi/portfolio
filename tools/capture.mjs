@@ -6,7 +6,7 @@
 // バナー: node tools/capture.mjs banner <画像ファイル> <id>
 //         → images/works/<id>/banner.webp に変換します
 //
-// 最後に data/works.json に貼り付ける images の値を表示します。
+// できた画像を microCMS の実績の画像の項目にアップロードしてください。
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -121,5 +121,5 @@ if (mode === 'lp') {
 }
 await browser.close();
 
-console.log('\ndata/works.json の "images" に貼り付けてください:');
-console.log(JSON.stringify(images, null, 2));
+console.log('\nできた画像（microCMS の実績にアップロードしてください）:');
+for (const [k, v] of Object.entries(images)) console.log(`  ${k}: ${v}`);

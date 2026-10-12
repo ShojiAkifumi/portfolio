@@ -1,7 +1,7 @@
 // microCMS から実績を読み込む（npm run build の時だけ使います）
 //
-// 環境変数 MICROCMS_SERVICE_DOMAIN（xxxx.microcms.io の xxxx）と MICROCMS_API_KEY がある時だけ読み込み、
-// data/works.json と同じ形に変換します。API の項目は microcms/works-schema.json を参照してください。
+// 環境変数 MICROCMS_SERVICE_DOMAIN（xxxx.microcms.io の xxxx）と MICROCMS_API_KEY で読み込み、
+// サイトが読む data/works.json の形に変換します。API の項目は microcms/works-schema.json を参照してください。
 const ENDPOINT = "works";
 // microCMS の画像は WebP に変換して配信（WebP の上限 16383px を超える縦長画像はそのまま）
 const WEBP_MAX = 16383;
@@ -73,10 +73,4 @@ export function toWork(c) {
   if (!w.client) delete w.client;
   if (!w.specs.length) delete w.specs;
   return w;
-}
-
-// data/works.json と microCMS をまとめる（同じ ID は microCMS を優先）
-export function mergeWorks(local, remote) {
-  const ids = new Set(remote.map((w) => w.id));
-  return [...remote, ...local.filter((w) => !ids.has(w.id))];
 }

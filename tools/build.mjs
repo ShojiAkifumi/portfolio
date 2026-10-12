@@ -5,17 +5,17 @@
 //                 - scss/style.scss（SCSS）を CSS に変換して圧縮
 //                 - index.html の空白・コメントを取り除いて圧縮
 //                 - ファイル名に中身のハッシュを付け、ブラウザに長くキャッシュさせる（_headers）
-//                 - microCMS の設定（環境変数か .env）があれば、実績を microCMS から読み込む（data/works.json があれば合わせる）
+//                 - 実績を microCMS から読み込んで data/works.json に書き出す（環境変数か .env に設定が必要）
 // npm run dev   : 手元の確認用。src/ や scss/ を保存するたびに js/app.js・css/style.css を作り直し、
 //                 http://localhost:8080 で表示します
 import * as esbuild from "esbuild";
 import { minify } from "html-minifier-terser";
-import { existsSync, watch } from "node:fs";
+import { watch } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as sass from "sass";
-import { fetchWorks, mergeWorks, microcmsEnabled } from "./microcms.mjs";
+import { fetchWorks, microcmsEnabled } from "./microcms.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "dist");
@@ -43,16 +43,13 @@ const jsOptions = {
 const scssEntry = path.join(root, "scss/style.scss");
 const compileScss = (opts = {}) => sass.compileAsync(scssEntry, { ...opts }).then((r) => r.css);
 
-// 実績：data/works.json（なくても大丈夫）と microCMS を合わせたもの
+// 実績：microCMS で公開中の実績
 async function loadWorks() {
-  const local = await readFile(path.join(root, "data/works.json"), "utf8")
-    .then(JSON.parse)
-    .catch(() => []);
-  if (!microcmsEnabled()) return local;
-  // 読み込めなかった時はビルドを止める（実績が空のまま公開されないように）
-  const remote = await fetchWorks();
-  console.log(`  microCMS から実績を ${remote.length} 件読み込みました`);
-  return mergeWorks(local, remote);
+  // 設定がない時や読み込めなかった時はビルドを止める（実績が空のサイトを公開しないように。Cloudflare では前の状態のまま公開が続きます）
+  if (!microcmsEnabled()) throw new Error("microCMS の設定（MICROCMS_SERVICE_DOMAIN・MICROCMS_API_KEY）がありません");
+  const works = await fetchWorks();
+  console.log(`  microCMS から実績を ${works.length} 件読み込みました`);
+  return works;
 }
 
 if (dev) {
@@ -67,8 +64,8 @@ if (dev) {
     }
   };
   await writeCss();
-  // data/works.json がない時は、microCMS の実績で作る（確認用。Git には入りません）
-  if (microcmsEnabled() && !existsSync(path.join(root, "data/works.json"))) {
+  // 手元の確認用に、microCMS の実績で data/works.json を作る（Git には入りません）
+  if (microcmsEnabled()) {
     await mkdir(path.join(root, "data"), { recursive: true });
     await writeFile(path.join(root, "data/works.json"), JSON.stringify(await loadWorks()));
   }
