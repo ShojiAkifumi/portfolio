@@ -325,7 +325,7 @@
       </section>
 
       <!-- ========== FLOW ========== -->
-      <section class="section section--mist" data-ink-edge="top" id="flow" aria-labelledby="flow-title">
+      <section class="section section--mist" data-ink-edge="top bottom" id="flow" aria-labelledby="flow-title">
         <div class="wrap">
           <div class="section-head">
             <p class="section-head__en" aria-hidden="true">FLOW</p>
@@ -356,8 +356,121 @@
         </div>
       </section>
 
+      <!-- ========== ABOUT ========== -->
+      <section class="section" id="about" aria-labelledby="about-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="section-head__en" aria-hidden="true">ABOUT</p>
+            <h2 class="section-head__ja" id="about-title">
+              <span class="ink-dot" aria-hidden="true"></span>プロフィール
+            </h2>
+          </div>
+          <div class="about">
+            <div class="about__visual">
+              <div class="about__photo ink-reveal">
+                <img src="images/profile.webp" alt="庄司明史の写真" width="568" height="642" loading="lazy" />
+              </div>
+            </div>
+            <div>
+              <p class="about__name">庄司 明史</p>
+              <p class="about__name-en">SHOJI AKIFUMI</p>
+              <ul class="about__role">
+                <li class="chip">Webデザイナー</li>
+                <li class="chip chip--banner">グラフィックデザイナー</li>
+              </ul>
+              <div class="about__bio">
+                <p>
+                  「デザインだけ」「コーディングだけ」ではなく、目的の整理から公開まで、一人で通して担当できるのが強みです。Web制作会社でデザインとコーディングを、システム開発会社で業務アプリの開発を経験してきました。
+                </p>
+                <p>
+                  <strong
+                    >大切にしているのは、デザインを通して、ご依頼いただいた商品・サービスの魅力を引き出すことです。</strong
+                  >見た目のきれいさだけでなく「誰に、何をしてほしいか」から考え、問い合わせや予約といった成果につなげます。
+                </p>
+                <p>
+                  現在はデジタルハリウッドで学びながら、立川を拠点にフリーランスとして活動中です。全国オンラインで対応します。
+                </p>
+                <p>「何から頼めばいいか分からない」という段階でも大丈夫です。まずはお気軽にご相談ください。</p>
+              </div>
+
+              <div class="about__block" data-reveal>
+                <p class="about__label">CAREER</p>
+                <ol class="timeline">
+                  <li><time>2019</time><span>Web制作会社でデザイン・コーディングを担当</span></li>
+                  <li><time>2025</time><span>システム開発会社で業務アプリを開発</span></li>
+                  <li><time>2026</time><span>デジタルハリウッド入学</span></li>
+                  <li><time>NOW</time><span>フリーランスのWebデザイナーとして活動中</span></li>
+                </ol>
+              </div>
+
+              <div class="about__block" data-reveal>
+                <p class="about__label">SKILL &amp; TOOLS</p>
+                <div class="tools-groups">
+                  <div class="tools-group">
+                    <p class="tools-group__name">デザイン</p>
+                    <ul class="tools">
+                      <li>Figma</li>
+                      <li>Photoshop</li>
+                      <li>Illustrator</li>
+                      <li>Canva</li>
+                    </ul>
+                  </div>
+                  <div class="tools-group">
+                    <p class="tools-group__name">コーディング</p>
+                    <ul class="tools">
+                      <li>HTML</li>
+                      <li>CSS / Sass</li>
+                      <li>JavaScript</li>
+                      <li>TypeScript</li>
+                      <li>WordPress / PHP</li>
+                    </ul>
+                  </div>
+                  <div class="tools-group">
+                    <p class="tools-group__name">開発</p>
+                    <ul class="tools">
+                      <li>React.js</li>
+                      <li>Next.js</li>
+                      <li>Vue.js</li>
+                      <li>Nuxt</li>
+                      <li>Git / GitHub</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="about__block" data-reveal>
+                <dl class="about__facts">
+                  <div class="fact">
+                    <dt>拠点</dt>
+                    <dd>東京都立川市<span class="d-inline-block">（リモート対応可能）</span></dd>
+                  </div>
+                  <div class="fact">
+                    <dt>趣味</dt>
+                    <dd>音楽活動（ベース・DTM）<span class="d-inline-block">・ゲーム制作・バイク</span></dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="about__link">
+                <a class="btn btn--ghost" href="https://shojiakifumi.github.io/profile/" target="_blank" rel="noopener"
+                  >詳しいプロフィールを見る<svg
+                    class="btn__arrow"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M7 17L17 7M9 7h8v8" /></svg
+                ></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ========== FAQ ========== -->
-      <section class="section section--mist" data-ink-edge="bottom" id="faq" aria-labelledby="faq-title">
+      <section class="section section--mist" data-ink-edge="top bottom" id="faq" aria-labelledby="faq-title">
         <div class="wrap">
           <div class="section-head">
             <p class="section-head__en" aria-hidden="true">FAQ</p>
@@ -498,119 +611,6 @@
             ]
           }
         </script>
-      </section>
-
-      <!-- ========== ABOUT ========== -->
-      <section class="section" id="about" aria-labelledby="about-title">
-        <div class="wrap">
-          <div class="section-head">
-            <p class="section-head__en" aria-hidden="true">ABOUT</p>
-            <h2 class="section-head__ja" id="about-title">
-              <span class="ink-dot" aria-hidden="true"></span>プロフィール
-            </h2>
-          </div>
-          <div class="about">
-            <div class="about__visual">
-              <div class="about__photo ink-reveal">
-                <img src="images/profile.webp" alt="庄司明史の写真" width="568" height="642" loading="lazy" />
-              </div>
-            </div>
-            <div>
-              <p class="about__name">庄司 明史</p>
-              <p class="about__name-en">SHOJI AKIFUMI</p>
-              <ul class="about__role">
-                <li class="chip">Webデザイナー</li>
-                <li class="chip chip--banner">グラフィックデザイナー</li>
-              </ul>
-              <div class="about__bio">
-                <p>
-                  「デザインだけ」「コーディングだけ」ではなく、目的の整理から公開まで、一人で通して担当できるのが強みです。Web制作会社でデザインとコーディングを、システム開発会社で業務アプリの開発を経験してきました。
-                </p>
-                <p>
-                  <strong
-                    >大切にしているのは、デザインを通して、ご依頼いただいた商品・サービスの魅力を引き出すことです。</strong
-                  >見た目のきれいさだけでなく「誰に、何をしてほしいか」から考え、問い合わせや予約といった成果につなげます。
-                </p>
-                <p>
-                  現在はデジタルハリウッドで学びながら、立川を拠点にフリーランスとして活動中です。全国オンラインで対応します。
-                </p>
-                <p>「何から頼めばいいか分からない」という段階でも大丈夫です。まずはお気軽にご相談ください。</p>
-              </div>
-
-              <div class="about__block" data-reveal>
-                <p class="about__label">CAREER</p>
-                <ol class="timeline">
-                  <li><time>2019</time><span>Web制作会社でデザイン・コーディングを担当</span></li>
-                  <li><time>2025</time><span>システム開発会社で業務アプリを開発</span></li>
-                  <li><time>2026</time><span>デジタルハリウッド入学</span></li>
-                  <li><time>NOW</time><span>フリーランスのWebデザイナーとして活動中</span></li>
-                </ol>
-              </div>
-
-              <div class="about__block" data-reveal>
-                <p class="about__label">SKILL &amp; TOOLS</p>
-                <div class="tools-groups">
-                  <div class="tools-group">
-                    <p class="tools-group__name">デザイン</p>
-                    <ul class="tools">
-                      <li>Figma</li>
-                      <li>Photoshop</li>
-                      <li>Illustrator</li>
-                      <li>Canva</li>
-                    </ul>
-                  </div>
-                  <div class="tools-group">
-                    <p class="tools-group__name">コーディング</p>
-                    <ul class="tools">
-                      <li>HTML</li>
-                      <li>CSS / Sass</li>
-                      <li>JavaScript</li>
-                      <li>TypeScript</li>
-                      <li>WordPress / PHP</li>
-                    </ul>
-                  </div>
-                  <div class="tools-group">
-                    <p class="tools-group__name">開発</p>
-                    <ul class="tools">
-                      <li>React.js</li>
-                      <li>Next.js</li>
-                      <li>Vue.js</li>
-                      <li>Nuxt</li>
-                      <li>Git / GitHub</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div class="about__block" data-reveal>
-                <dl class="about__facts">
-                  <div class="fact">
-                    <dt>拠点</dt>
-                    <dd>東京都立川市<span class="d-inline-block">（リモート対応可能）</span></dd>
-                  </div>
-                  <div class="fact">
-                    <dt>趣味</dt>
-                    <dd>音楽活動（ベース・DTM）<span class="d-inline-block">・ゲーム制作・バイク</span></dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div class="about__link">
-                <a class="btn btn--ghost" href="https://shojiakifumi.github.io/profile/" target="_blank" rel="noopener"
-                  >詳しいプロフィールを見る<svg
-                    class="btn__arrow"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 17L17 7M9 7h8v8" /></svg
-                ></a>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
       <!-- ========== CONTACT ========== -->
