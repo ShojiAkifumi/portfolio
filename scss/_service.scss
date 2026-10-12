@@ -129,6 +129,11 @@
     margin: clamp(16px, 2vw, 22px) 0 0;
     font-size: 0.8rem;
     color: var(--ink-soft);
+    a {
+      color: var(--deep);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
   }
 }
 /* 1列になる幅では、分類ごとに白いカードにして、どこからどこまでが同じ分類か分かるようにする */
