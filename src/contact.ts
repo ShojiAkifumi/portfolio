@@ -105,7 +105,7 @@ function init(scope: ParentNode) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || String(data.success) === "false") throw new Error(data.message || String(res.status));
       form.reset();
-      show("送信しました。内容を確認して、ご入力のメールアドレスにお返事します。", "ok");
+      show("送信しました。24時間以内に、ご入力のメールアドレスへお返事します。", "ok");
     } catch (err) {
       // 原因を開発者ツールのコンソールで確認できるように残す
       console.error("[contact] 送信エラー:", err);
