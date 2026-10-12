@@ -101,12 +101,13 @@ const CLOUDS: Record<string, CloudOptions> = {
     delay: 0,
   },
 };
-function initClouds() {
-  $$<HTMLCanvasElement>("canvas[data-ink]").forEach((c) => {
+// signal: その画面を閉じた時に abort される（インクの WebGL も一緒に手放す）
+function initClouds(scope: ParentNode, signal: AbortSignal) {
+  $$<HTMLCanvasElement>("canvas[data-ink]", scope).forEach((c) => {
     if (c.dataset.inkBound) return;
     c.dataset.inkBound = "1";
     const opts = CLOUDS[c.dataset.ink || ""];
-    if (opts) InkCloud(c, opts);
+    if (opts) InkCloud(c, opts, signal);
   });
 }
 
@@ -317,7 +318,7 @@ async function navigate(url: URL, { push = true, origin = null as Point | null, 
   let top = y != null ? y : (targetY(view, url.hash, inner.getBoundingClientRect().top) ?? 0);
   top = Math.min(max, Math.max(0, top));
   inner.style.transform = `translateY(${-top}px)`;
-  initClouds();
+  initClouds(view, ctrl.signal);
   setTimeout(() => $("main", view)?.classList.add("is-ready"), 200);
 
   const finish = () => {
@@ -402,7 +403,7 @@ async function boot() {
   const html = document.documentElement;
   const ready = () => {
     main.classList.add("is-ready");
-    initClouds();
+    initClouds(view0, current.ctrl.signal);
     Reveal.start();
   };
   // トップだけ雫を落とす。PC・タブレットは正面の実績（スライダーの中心）の近くに、スマホは画面の中心の少し下に落ちる

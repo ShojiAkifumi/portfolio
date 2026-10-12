@@ -153,6 +153,7 @@ export interface GL {
   seti(name: string, v: number): void;
   draw(): void;
   resize(scale: number): DOMRect;
+  release(): void;
 }
 
 function createGL(canvas: HTMLCanvasElement, frag: string): GL | null {
@@ -199,6 +200,10 @@ function createGL(canvas: HTMLCanvasElement, frag: string): GL | null {
       const loc = u[name];
       if (loc != null) gl.uniform1i(loc, v);
     },
+    // ブラウザが同時に持てる WebGL の数には上限があるので、使い終わったらすぐに手放す
+    release() {
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+    },
     draw() {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     },
@@ -222,7 +227,9 @@ export interface CloudOptions {
   delay?: number;
 }
 
-export function InkCloud(canvas: HTMLCanvasElement, opts: CloudOptions): void {
+// signal: 画面（ビュー）を閉じた時に abort される。止めて WebGL を手放す
+export function InkCloud(canvas: HTMLCanvasElement, opts: CloudOptions, signal: AbortSignal): void {
+  if (signal.aborted) return;
   const gl0 = createGL(canvas, CLOUD_FRAG);
   if (!gl0) {
     canvas.classList.add("is-fallback");
@@ -270,20 +277,32 @@ export function InkCloud(canvas: HTMLCanvasElement, opts: CloudOptions): void {
   };
   resize();
   frame(reduceMotion ? start0 + 10000 : performance.now());
+  let io: IntersectionObserver | null = null;
   if (!reduceMotion) {
-    new IntersectionObserver(([en]) => {
+    io = new IntersectionObserver(([en]) => {
       visible = en.isIntersecting;
       visible && !document.hidden ? start() : stop();
-    }).observe(canvas);
-    document.addEventListener("visibilitychange", () => (document.hidden || !visible ? stop() : start()));
+    });
+    io.observe(canvas);
+    document.addEventListener("visibilitychange", () => (document.hidden || !visible ? stop() : start()), { signal });
   }
   let rt = 0;
-  window.addEventListener("resize", () => {
+  window.addEventListener(
+    "resize",
+    () => {
+      clearTimeout(rt);
+      rt = window.setTimeout(() => {
+        resize();
+        if (!running) frame(performance.now());
+      }, 150);
+    },
+    { signal },
+  );
+  signal.addEventListener("abort", () => {
+    stop();
     clearTimeout(rt);
-    rt = window.setTimeout(() => {
-      resize();
-      if (!running) frame(performance.now());
-    }, 150);
+    io?.disconnect();
+    g.release();
   });
   const parent = canvas.parentElement;
   if (opts.mouse && parent && window.matchMedia("(hover: hover)").matches) {
@@ -423,7 +442,13 @@ export const InkTransition = {
   rcTex: null as WebGLTexture | null,
   dropReady: Promise.resolve(false) as Promise<boolean>,
   ensure(): GL | null {
-    if (this.g) return this.g;
+    if (this.g && !this.g.gl.isContextLost()) return this.g;
+    // WebGL が失われていたら（ブラウザの上限などで）作り直す
+    if (this.canvas) {
+      this.canvas.remove();
+      this.canvas = null;
+      this.g = null;
+    }
     const c = document.createElement("canvas");
     c.className = "ink-transition";
     c.setAttribute("aria-hidden", "true");
