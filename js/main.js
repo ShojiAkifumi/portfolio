@@ -406,13 +406,19 @@
         y: Math.max(window.innerHeight * 0.05, origin.y - window.innerHeight * 0.05)
       };
     }
+    const strength = home && !reduceMotion ? $('#strength', view0) : null;
+    if (strength) strength.classList.add('is-held');
     if (home) await Ink.InkTransition.preload(1200);
     const played = Ink.InkTransition.play({
       origin,
       duration: 1700,
       drop: home,
       paper: true,
-      onImpact: () => setTimeout(ready, 40)
+      onImpact: () => {
+        setTimeout(ready, 40);
+        // STRENGTH は着地から1秒後に現す
+        setTimeout(() => strength && strength.classList.remove('is-held'), 1000);
+      }
     });
     // 1コマ目が描かれてから白い覆いを外す
     requestAnimationFrame(() => requestAnimationFrame(() => html.classList.remove('is-covered')));

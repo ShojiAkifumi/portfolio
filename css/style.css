@@ -747,6 +747,15 @@ html:not(.ink-masks) .ink-edge {
   filter: none;
 }
 
+/* 最初の読み込みでは、STRENGTH を雫の着地から1秒後に現す（JS が .is-held を外す） */
+#strength {
+  transition: opacity 1s var(--soft);
+}
+#strength.is-held {
+  opacity: 0;
+  transition: none;
+}
+
 /* ---------- Section ---------- */
 .section {
   overflow-x: clip;
