@@ -7,9 +7,9 @@
   &--mist {
     background: var(--mist);
   }
-  // mist より少しだけ濃い空色（となりの mist のセクションと分けたい時に）
-  &--sky {
-    background: color-mix(in srgb, var(--sky) 45%, var(--paper));
+  // ごく淡い灰色（となりの mist のセクションと分けたい時に）
+  &--gray {
+    background: color-mix(in srgb, var(--gray) 12%, var(--paper));
   }
 }
 .section-head {
