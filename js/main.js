@@ -399,8 +399,8 @@
       const b = front.getBoundingClientRect();
       if (b.width) origin = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
     }
-    // そこから画面の幅・高さの5%ずつ右上へずらす（スマホは画面の中心から高さの10%下）
-    if (home && !front) origin = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.6 };
+    // そこから画面の幅・高さの5%ずつ右上へずらす（スマホは画面の中心から高さの5%下）
+    if (home && !front) origin = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.55 };
     else if (home) {
       origin = {
         x: Math.min(window.innerWidth * 0.95, origin.x + window.innerWidth * 0.05),
