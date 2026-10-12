@@ -399,11 +399,11 @@
       const b = front.getBoundingClientRect();
       if (b.width) origin = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
     }
-    // そこから画面の幅・高さの15%ずつ右上へずらす
+    // そこから画面の幅・高さの5%ずつ右上へずらす
     if (home) {
       origin = {
-        x: Math.min(window.innerWidth * 0.95, origin.x + window.innerWidth * 0.15),
-        y: Math.max(window.innerHeight * 0.05, origin.y - window.innerHeight * 0.15)
+        x: Math.min(window.innerWidth * 0.95, origin.x + window.innerWidth * 0.05),
+        y: Math.max(window.innerHeight * 0.05, origin.y - window.innerHeight * 0.05)
       };
     }
     if (home) await Ink.InkTransition.preload(1200);

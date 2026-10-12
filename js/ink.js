@@ -58,7 +58,7 @@
   // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
   //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
   //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
-  //  - 最初の読み込みでは、外側を白い紙にし（uPaper=1）、手前から落ちてくる雫と着地の波紋も描く
+  //  - 最初の読み込みでは、外側を白い紙にし（uPaper=1）、手前から落ちてくる雫も描く
   const BLOOM_FRAG = `
     precision highp float;
     uniform vec2 uRes;
@@ -75,8 +75,6 @@
     uniform float uDropA;
     uniform float uDropSoft;
     uniform float uShadow;
-    uniform float uRipR;
-    uniform float uRipA;
     uniform sampler2D uDropTex;
     uniform float uHasTex;
     float hash(vec2 i){return texture2D(uLut,(mod(i,256.)+.5)/256.).r;}
@@ -126,10 +124,6 @@
       vec2 q0=(px-uOrigin)/(14.+40.*(1.-uShadow));
       col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28*uPaper);
       col=over(col, ink, band*.94);
-      // 着地の波紋
-      float dp=length(px-uOrigin);
-      float ring=exp(-pow((dp-uRipR)/(3.+uRipR*.08),2.));
-      col=over(col, vec3(.55,.78,.96), ring*uRipA);
       // 落ちてくる雫：ロゴと同じ水彩のにじみ。手前ではぼけて大きく、奥へ行くほど小さくくっきり
       vec2 q=(px-uDrop)/max(uDropR,.001);
       if(uHasTex>.5){
@@ -394,7 +388,6 @@
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
-      const RIP = 520;
 
       const t0 = performance.now();
       let impacted = !drop;
@@ -414,9 +407,6 @@
           g.set('uShadow', drop ? Math.max(0, 1 - (t - DROP) / 200) : 0);
           if (!impacted) { impacted = true; onImpact && onImpact(); }
         }
-        const tr = (t - DROP) / RIP;
-        g.set('uRipR', drop && tr > 0 ? 6 + 110 * easeOut(Math.min(1, tr)) : 0);
-        g.set('uRipA', drop && tr > 0 && tr < 1 ? 0.7 * (1 - tr) : 0);
 
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
