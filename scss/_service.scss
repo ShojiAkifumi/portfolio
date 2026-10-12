@@ -125,16 +125,6 @@
       gap: 14px;
     }
   }
-  &__notes {
-    margin: clamp(16px, 2vw, 22px) 0 0;
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-    a {
-      color: var(--deep);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-  }
 }
 /* 1列になる幅では、分類ごとに白いカードにして、どこからどこまでが同じ分類か分かるようにする */
 .price-group {
@@ -201,6 +191,54 @@
       font-family: var(--font-body);
       font-size: 0.7rem;
       margin-inline: 1px;
+    }
+  }
+}
+// 料金の下の、全サービス共通の注記
+.service-notes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-top: clamp(18px, 2.4vw, 26px);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  &__label {
+    padding: 1px 12px;
+    border-radius: 999px;
+    background: var(--mist);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--deep);
+  }
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+  }
+  li {
+    position: relative;
+    padding-left: 14px;
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--sky);
+    }
+  }
+  a {
+    color: var(--deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @include down(sp) {
+    flex-direction: column;
+    ul {
+      flex-direction: column;
     }
   }
 }
