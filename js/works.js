@@ -1,4 +1,4 @@
-// 実績: data/works.json を読み込んで、トップ・一覧・詳細ページに表示する
+// 実績: data/works.json を読み込んで、トップ・一覧・詳細の各画面に表示する（main.js のルーターから呼ばれる）
 (function () {
   "use strict";
 
@@ -9,16 +9,26 @@
       /[&<>"']/g,
       (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
     );
-  const qs = new URLSearchParams(location.search);
+  const workURL = (w) => `/works/${encodeURIComponent(w.id)}`;
 
-  async function loadWorks() {
-    const res = await fetch("data/works.json", { cache: "no-cache" });
-    if (!res.ok) throw new Error(`works.json を読み込めませんでした (${res.status})`);
-    const list = await res.json();
-    // 新しい順（同じ日付は JSON に書いた順）
-    return list
-      .map((w, i) => ({ ...w, _i: i }))
-      .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || a._i - b._i);
+  // 画面を切り替えるたびに読み直さないよう、1回読み込んだ結果を使い回す
+  let cache = null;
+  function loadWorks() {
+    if (!cache) {
+      cache = fetch("/data/works.json", { cache: "no-cache" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`works.json を読み込めませんでした (${res.status})`);
+          return res.json();
+        })
+        .then((list) =>
+          // 新しい順（同じ日付は JSON に書いた順）
+          list
+            .map((w, i) => ({ ...w, _i: i }))
+            .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || a._i - b._i),
+        );
+      cache.catch(() => (cache = null));
+    }
+    return cache;
   }
 
   const thumbOf = (w) => w.thumbnail || w.images?.mockup || w.images?.banner || w.images?.pc || "";
@@ -26,7 +36,7 @@
   function cardHTML(w) {
     const cat = w.category === "banner" ? "banner" : "lp";
     return `
-      <a class="work-card" href="work.html?id=${encodeURIComponent(w.id)}" data-reveal data-cursor="view">
+      <a class="work-card" href="${workURL(w)}" data-reveal data-cursor="view">
         <div class="work-card__visual work-card__visual--${cat} ink-reveal">
           <img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" loading="lazy" decoding="async">
         </div>
@@ -71,8 +81,8 @@
   /* ---------- ファーストビューの実績スライダー ----------
      PC・タブレット: 右端に半円を描いて縦に流れる / スマホ: 横に流れる
      奥（正面から遠い）ほど小さく・淡く・ぼかして立体感を出す */
-  async function initHero() {
-    const root = document.querySelector("[data-hero-works]");
+  async function initHero(scope, signal) {
+    const root = scope.querySelector("[data-hero-works]");
     if (!root) return;
     let works;
     try {
@@ -84,10 +94,11 @@
     const cfg = window.SITE_CONFIG || {};
     const list = works.slice(0, cfg.heroWorksCount || 8);
     if (!list.length) return;
-    new Arc(root, list, cfg.heroInterval || 3000);
+    if (signal.aborted) return;
+    new Arc(root, list, cfg.heroInterval || 3000, signal);
   }
 
-  function Arc(root, list, interval) {
+  function Arc(root, list, interval, signal) {
     const stage = root.querySelector("[data-arc-stage]");
     const countEl = root.querySelector("[data-arc-count]");
     const titleEl = root.querySelector("[data-arc-title]");
@@ -104,7 +115,7 @@
         const cat = w.category === "banner" ? "banner" : "lp";
         const a = document.createElement("a");
         a.className = `arc-item arc-item--${cat}`;
-        a.href = `work.html?id=${encodeURIComponent(w.id)}`;
+        a.href = workURL(w);
         a.dataset.cursor = "view";
         a.innerHTML = `<span class="arc-item__in" style="--i:${items.length}"><img src="${esc(thumbOf(w))}" alt="${c ? "" : esc(w.title)}" decoding="async"></span>`;
         if (c) {
@@ -277,7 +288,7 @@
       if (Math.abs(target - offset) < 0.0005) offset = target;
       layout();
       updateLabel();
-      raf = visible ? requestAnimationFrame(frame) : 0;
+      raf = visible && !signal.aborted ? requestAnimationFrame(frame) : 0;
     }
     const run = () => {
       if (!raf) {
@@ -287,6 +298,7 @@
     };
     const tick = () => {
       clearTimeout(timer);
+      if (signal.aborted) return;
       timer = setTimeout(() => {
         if (!hover && !drag && visible && !document.hidden) target = Math.round(target) + 1;
         tick();
@@ -351,34 +363,27 @@
       target = Math.round(target);
       tick();
     };
-    window.addEventListener("pointerup", end);
-    window.addEventListener("pointercancel", end);
+    window.addEventListener("pointerup", end, { signal });
+    window.addEventListener("pointercancel", end, { signal });
     stage.addEventListener("dragstart", (e) => e.preventDefault());
 
     new IntersectionObserver((es) => {
       visible = es[0].isIntersecting;
       if (visible) run();
     }).observe(root);
-    compact.addEventListener("change", () => {
+    const relayout = () => {
       measure();
       layout();
-    });
-    window.addEventListener("resize", () => {
-      measure();
-      layout();
-    });
-    narrow.addEventListener("change", () => {
-      measure();
-      layout();
-    });
+    };
+    compact.addEventListener("change", relayout, { signal });
+    window.addEventListener("resize", relayout, { signal });
+    narrow.addEventListener("change", relayout, { signal });
+    signal.addEventListener("abort", () => clearTimeout(timer));
 
     measure();
     layout();
     // 文字の幅はWebフォントの読み込みで変わるので、読み込み後に測り直す
-    if (document.fonts) document.fonts.ready.then(() => {
-      measure();
-      layout();
-    });
+    if (document.fonts) document.fonts.ready.then(() => !signal.aborted && relayout());
     updateLabel();
     run();
     if (!reduce) tick();
@@ -386,8 +391,8 @@
   }
 
   /* ---------- 実績一覧ページ ---------- */
-  async function initList() {
-    const grid = document.querySelector('[data-works="all"]');
+  async function initList(scope, signal) {
+    const grid = scope.querySelector('[data-works="all"]');
     if (!grid) return;
     let works;
     try {
@@ -397,8 +402,9 @@
       return;
     }
     const per = cfg.worksPerPage || 12;
-    const moreBox = document.querySelector("[data-more]");
+    const moreBox = scope.querySelector("[data-more]");
     const moreBtn = moreBox && moreBox.querySelector("button");
+    const qs = new URLSearchParams(location.search);
     let cat = ["lp", "banner"].includes(qs.get("cat")) ? qs.get("cat") : "all";
     let shown = 0;
     const filtered = () => works.filter((w) => cat === "all" || w.category === cat);
@@ -410,13 +416,15 @@
       if (moreBox) moreBox.hidden = shown >= list.length;
       window.Site.Reveal.observe(grid);
     };
-    const reset = (c) => {
+    const reset = (c, first) => {
       cat = c;
       shown = 0;
       grid.innerHTML = "";
-      const url = new URL(location.href);
-      c === "all" ? url.searchParams.delete("cat") : url.searchParams.set("cat", c);
-      history.replaceState(null, "", url);
+      if (!first && !signal.aborted) {
+        const url = new URL(location.href);
+        c === "all" ? url.searchParams.delete("cat") : url.searchParams.set("cat", c);
+        history.replaceState(history.state, "", url);
+      }
       if (!filtered().length) {
         grid.innerHTML = '<p class="works-empty">この種類の実績は準備中です。</p>';
         if (moreBox) moreBox.hidden = true;
@@ -424,15 +432,15 @@
       }
       more();
     };
-    const filter = document.querySelector("[data-filter]");
-    if (filter) renderFilter(filter, works, cat, reset);
+    const filter = scope.querySelector("[data-filter]");
+    if (filter) renderFilter(filter, works, cat, (c) => reset(c));
     if (moreBtn) moreBtn.addEventListener("click", more);
-    reset(cat);
+    reset(cat, true);
   }
 
   /* ---------- 実績詳細ページ ---------- */
-  async function initDetail() {
-    const root = document.querySelector("[data-work-detail]");
+  async function initDetail(scope, signal, id) {
+    const root = scope.querySelector("[data-work-detail]");
     if (!root) return;
     let works;
     try {
@@ -441,21 +449,14 @@
       showError(root, e);
       return;
     }
-    const id = qs.get("id");
-    if (!id) {
-      location.replace("works.html");
-      return;
-    }
     const idx = works.findIndex((w) => w.id === id);
     if (idx < 0) {
-      root.innerHTML = `<div class="wrap" style="padding-block:120px"><p class="works-empty">お探しの実績が見つかりませんでした。<br><a href="works.html">実績一覧へ戻る</a></p></div>`;
+      root.innerHTML = `<div class="wrap" style="padding-block:120px"><p class="works-empty">お探しの実績が見つかりませんでした。<br><a href="/works">実績一覧へ戻る</a></p></div>`;
       return;
     }
     const w = works[idx];
     const cat = w.category === "banner" ? "banner" : "lp";
-    document.title = `${w.title}｜制作実績｜ショウジアキフミ`;
-    const md = document.querySelector('meta[name="description"]');
-    if (md && w.summary) md.setAttribute("content", w.summary);
+    if (!signal.aborted) window.Site.setMeta(`${w.title}｜制作実績｜ショウジアキフミ`, w.summary);
 
     const prev = works[idx - 1],
       next = works[idx + 1];
@@ -490,7 +491,7 @@
       <section class="page-hero">
         <canvas class="ink-canvas" data-ink="page" aria-hidden="true"></canvas>
         <div class="wrap">
-          <ol class="breadcrumb"><li><a href="./">HOME</a></li><li><a href="works.html">WORKS</a></li><li aria-current="page">${esc(w.title)}</li></ol>
+          <ol class="breadcrumb"><li><a href="/">HOME</a></li><li><a href="/works">WORKS</a></li><li aria-current="page">${esc(w.title)}</li></ol>
           <div class="detail-head">
             <p class="detail-head__tags">
               <span class="chip${cat === "banner" ? " chip--banner" : ""}">${CATS[cat]}</span>
@@ -515,7 +516,7 @@
           <aside class="detail-aside" data-reveal>
             <dl>${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
             ${w.url ? `<a class="btn btn--blue" href="${esc(w.url)}" target="_blank" rel="noopener">サイトを見る<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>` : ""}
-            <a class="btn" href="./#contact">この実績について相談する</a>
+            <a class="btn" href="/#contact">この実績について相談する</a>
           </aside>
         </div>
       </section>
@@ -523,22 +524,16 @@
       <section class="section" style="padding-top:0">
         <div class="wrap" style="display:grid;gap:clamp(40px,6vw,72px)">
           <nav class="pager" aria-label="前後の実績">
-            ${prev ? `<a class="prev" href="work.html?id=${encodeURIComponent(prev.id)}"><small>← NEWER</small><span>${esc(prev.title)}</span></a>` : "<span></span>"}
-            ${next ? `<a class="next" href="work.html?id=${encodeURIComponent(next.id)}"><small>OLDER →</small><span>${esc(next.title)}</span></a>` : "<span></span>"}
+            ${prev ? `<a class="prev" href="${workURL(prev)}"><small>← NEWER</small><span>${esc(prev.title)}</span></a>` : "<span></span>"}
+            ${next ? `<a class="next" href="${workURL(next)}"><small>OLDER →</small><span>${esc(next.title)}</span></a>` : "<span></span>"}
           </nav>
           <div class="cta-band" data-reveal>
             <div><h2>こんなバナー・LPを作りたい、をお聞かせください。</h2><p>ご相談・お見積もりは無料です。</p></div>
-            <a class="btn" href="./#contact">無料で相談する<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            <a class="btn" href="/#contact">無料で相談する<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
           </div>
         </div>
       </section>`;
-    window.Site.Reveal.observe(root);
-    document.dispatchEvent(new Event("ink:refresh"));
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initHero();
-    initList();
-    initDetail();
-  });
+  window.Works = { initHero, initList, initDetail, load: loadWorks };
 })();

@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- どのURL（/works/〇〇 など）で開いても、画像やCSSをサイトのルートから読み込む -->
+    <base href="/" />
     <title>ショウジアキフミ｜バナー・LP制作のWebデザイナー</title>
     <meta
       name="description"
@@ -33,18 +35,18 @@
   <body>
     <header class="header" id="top">
       <div class="wrap header__inner">
-        <a class="logo" href="./" aria-label="ショウジアキフミ トップへ">
+        <a class="logo" href="/" aria-label="ショウジアキフミ トップへ">
           <img class="logo__mark" src="images/logo-mark.png" alt="" width="30" height="30" />
           <span class="logo__text">SHOJI AKIFUMI<small>ショウジアキフミ</small></span>
         </a>
         <nav class="nav" id="nav" aria-label="メインメニュー">
           <ul class="nav__list">
-            <li><a href="works.html">WORKS</a></li>
-            <li><a href="#strength">STRENGTH</a></li>
-            <li><a href="#service">SERVICE</a></li>
-            <li><a href="#about">ABOUT</a></li>
+            <li><a href="/works">WORKS</a></li>
+            <li><a href="/#strength">STRENGTH</a></li>
+            <li><a href="/#service">SERVICE</a></li>
+            <li><a href="/#about">ABOUT</a></li>
           </ul>
-          <a class="btn btn--sm" href="#contact">無料で相談する</a>
+          <a class="btn btn--sm" href="/#contact">無料で相談する</a>
         </nav>
         <button class="menu-btn" type="button" aria-controls="nav" aria-expanded="false" aria-label="メニューを開く">
           <span></span>
@@ -93,7 +95,7 @@
                 <span class="arc__tag">WORKS<small>制作実績</small></span>
                 <span class="arc__count" data-arc-count aria-hidden="true"></span>
                 <span class="arc__title" data-arc-title aria-live="polite"></span>
-                <a class="arc__all" href="works.html"
+                <a class="arc__all" href="/works"
                   >制作実績一覧を見る<svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -580,13 +582,13 @@
     <footer class="footer" data-ink-edge="top">
       <div class="wrap footer__inner">
         <div class="footer__top">
-          <a class="logo" href="./" aria-label="ショウジアキフミ トップへ">
+          <a class="logo" href="/" aria-label="ショウジアキフミ トップへ">
             <img class="logo__mark" src="images/logo-mark.png" alt="" width="30" height="30" />
             <span class="logo__text">SHOJI AKIFUMI<small>ショウジアキフミ</small></span>
           </a>
           <nav class="footer__nav" aria-label="フッターメニュー">
-            <a href="works.html">WORKS</a><a href="./#strength">STRENGTH</a><a href="./#service">SERVICE</a
-            ><a href="./#about">ABOUT</a><a href="./#contact">CONTACT</a>
+            <a href="/works">WORKS</a><a href="/#strength">STRENGTH</a><a href="/#service">SERVICE</a
+            ><a href="/#about">ABOUT</a><a href="/#contact">CONTACT</a>
           </nav>
           <div class="sns" data-sns></div>
         </div>
@@ -599,8 +601,9 @@
 
     <script src="js/config.js"></script>
     <script src="js/ink.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/views.js"></script>
     <script src="js/works.js"></script>
     <script src="js/contact.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>

@@ -7,47 +7,6 @@
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const store = {
-    get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
-    set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* 保存できなくても動作は続ける */ } }
-  };
-
-  /* ---------- 画面切り替え（インクが広がって次の画面へ） ---------- */
-  function enterPage(done) {
-    const html = document.documentElement;
-    let origin = { x: window.innerWidth * .7, y: window.innerHeight * .42 };
-    try { const o = JSON.parse(store.get('ink-origin') || 'null'); if (o) origin = o; } catch (e) { /* 既定の位置を使う */ }
-    const played = Ink.InkTransition.play(0, origin, 1700, () => {});
-    // 1コマ目が描かれてから白い覆いを外す
-    requestAnimationFrame(() => requestAnimationFrame(() => html.classList.remove('is-covered')));
-    setTimeout(done, played ? 350 : 0);
-  }
-
-  function initLinks() {
-    document.addEventListener('click', (e) => {
-      const a = e.target.closest && e.target.closest('a[href]');
-      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (a.target === '_blank' || a.hasAttribute('download')) return;
-      const url = new URL(a.href, location.href);
-      if (url.origin !== location.origin) return;
-      // 同じページ内の移動はスクロールだけ
-      if (url.pathname === location.pathname && url.search === location.search) return;
-      if (reduceMotion) return;
-      e.preventDefault();
-      store.set('ink-origin', JSON.stringify({ x: e.clientX, y: e.clientY }));
-      document.body.classList.remove('menu-open');
-      document.documentElement.classList.add('is-leaving');
-      const ok = Ink.InkTransition.play(1, { x: e.clientX, y: e.clientY }, 950, () => { location.href = url.href; });
-      if (!ok) location.href = url.href;
-    });
-    // 戻るボタンでキャッシュから表示された時は覆いを消す
-    window.addEventListener('pageshow', (e) => {
-      if (!e.persisted) return;
-      document.documentElement.classList.remove('is-leaving', 'is-covered');
-      const c = $('.ink-transition');
-      if (c) c.hidden = true;
-    });
-  }
 
   /* ---------- ヘッダー ---------- */
   function initHeader() {
@@ -69,29 +28,34 @@
       $$('a', nav).forEach((a) => a.addEventListener('click', () => set(false)));
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
     }
+  }
 
-    // 表示中のセクションをナビに反映
-    const links = $$('.nav__list a[href^="#"]');
-    if (links.length && 'IntersectionObserver' in window) {
-      const map = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]));
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((en) => {
-          const a = map.get(en.target.id);
-          if (a && en.isIntersecting) {
-            links.forEach((l) => l.setAttribute('aria-current', 'false'));
-            a.setAttribute('aria-current', 'true');
-          }
-        });
-      }, { rootMargin: '-45% 0px -50% 0px' });
-      map.forEach((_, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
-      // ページのトップ（ファーストビュー）に戻ったら現在地の表示を外す
-      const hero = $('.hero');
-      if (hero) {
-        new IntersectionObserver((entries) => {
-          if (entries.some((en) => en.isIntersecting)) links.forEach((l) => l.setAttribute('aria-current', 'false'));
-        }, { rootMargin: '-45% 0px -50% 0px' }).observe(hero);
-      }
+  // 表示中のセクションをナビに反映（トップ）／実績の画面では WORKS を現在地にする
+  function initNavCurrent(view, name, signal) {
+    const links = $$('.nav__list a');
+    const set = (a) => links.forEach((l) => l.setAttribute('aria-current', String(l === a)));
+    if (name !== 'home') {
+      set(name === 'works' || name === 'detail' ? links.find((l) => l.getAttribute('href') === '/works') : null);
+      return;
     }
+    set(null);
+    if (!('IntersectionObserver' in window)) return;
+    const map = new Map(links.filter((a) => a.getAttribute('href').startsWith('/#'))
+      .map((a) => [a.getAttribute('href').slice(2), a]));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        const a = map.get(en.target.id);
+        if (a && en.isIntersecting) set(a);
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    map.forEach((_, id) => { const s = $('#' + id, view); if (s) io.observe(s); });
+    // ページのトップ（ファーストビュー）に戻ったら現在地の表示を外す
+    const hero = $('.hero', view);
+    const io2 = new IntersectionObserver((entries) => {
+      if (entries.some((en) => en.isIntersecting)) set(null);
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    if (hero) io2.observe(hero);
+    signal.addEventListener('abort', () => { io.disconnect(); io2.disconnect(); });
   }
 
   /* ---------- 漂うインクの背景 ---------- */
@@ -101,9 +65,7 @@
     page: { center: (w) => (w < 760 ? [.95, .8] : [.88, .55]), scale: (w) => (w < 760 ? .5 : .62), alpha: .8, mouse: true, delay: 250 },
     contact: { center: (w) => (w < 760 ? [.05, .08] : [.08, .2]), scale: () => .7, alpha: .55, mouse: false, delay: 0 }
   };
-  let inkStarted = false;
   function initClouds() {
-    inkStarted = true;
     $$('canvas[data-ink]').forEach((c) => {
       if (c.dataset.inkBound) return;
       c.dataset.inkBound = '1';
@@ -184,8 +146,10 @@
   })();
 
   /* ---------- セクションのつなぎ目のインク ---------- */
-  function initEdges() {
-    $$('[data-ink-edge]').forEach((sec) => {
+  function initEdges(scope) {
+    $$('[data-ink-edge]', scope).forEach((sec) => {
+      if (sec.dataset.edgeBound) return;
+      sec.dataset.edgeBound = '1';
       const color = getComputedStyle(sec).backgroundColor;
       sec.dataset.inkEdge.split(' ').forEach((pos) => {
         const e = document.createElement('div');
@@ -235,10 +199,10 @@
     Instagram: '<path d="M12 2.2c3.2 0 3.6 0 4.8.1 3.2.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zm5.2-9.6a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>',
     note: '<path d="M4 4h10.5A5.5 5.5 0 0 1 20 9.5V20h-4v-9.6c0-1.5-.9-2.4-2.4-2.4H8V20H4V4z"/>'
   };
-  function initFooter() {
-    const y = $('[data-year]');
+  function initFooter(scope) {
+    const y = $('[data-year]', scope);
     if (y) y.textContent = new Date().getFullYear();
-    const box = $('[data-sns]');
+    const box = $('[data-sns]', scope);
     const cfg = window.SITE_CONFIG || {};
     if (!box) return;
     if (!cfg.showSns) { box.remove(); return; }
@@ -250,21 +214,201 @@
     });
   }
 
-  window.Site = { Reveal, $, $$ };
-  // 後から描画された canvas（実績詳細ページ）にもインクを適用する
-  document.addEventListener('ink:refresh', () => { if (inkStarted) initClouds(); });
+  /* ---------- 画面（ビュー）の切り替え ----------
+     1つの HTML の中で、<main> とフッターをまとめた .view を差し替える。
+     次の画面は今の画面の上に重ねて置き、インクのにじみの形で切り抜いて見せる（空白を挟まず1回で切り替わる） */
+  const view0 = document.createElement('div');
+  view0.className = 'view';
+  const main0 = $('main'), footer0 = $('.footer');
+  main0.before(view0);
+  view0.append(main0, footer0);
+  // トップの中身とフッターは、JS が手を加える前の状態を控えておく
+  const HOME = { title: document.title, description: ($('meta[name="description"]') || {}).content || '', html: main0.innerHTML };
+  const FOOTER = footer0.outerHTML;
+
+  function setMeta(title, description) {
+    document.title = title;
+    const md = $('meta[name="description"]');
+    if (md && description) md.setAttribute('content', description);
+  }
+
+  // URL から画面を決める（以前の works.html / work.html?id= も受け付ける）
+  function route(url) {
+    let path = url.pathname.replace(/\/index\.html$/, '/');
+    if (path === '/works.html') path = '/works';
+    if (path === '/work.html') {
+      const id = url.searchParams.get('id');
+      url.searchParams.delete('id');
+      path = id ? '/works/' + encodeURIComponent(id) : '/works';
+    }
+    path = path.replace(/\/+$/, '') || '/';
+    const m = path.match(/^\/works\/([^/]+)$/);
+    const name = path === '/' ? 'home' : path === '/works' ? 'works' : m ? 'detail' : 'notfound';
+    return { name, id: m ? decodeURIComponent(m[1]) : null, href: (path === '/' ? '/' : path) + url.search + url.hash };
+  }
+
+  async function initView(view, r, signal) {
+    const main = $('main', view);
+    const v = window.Views[r.name] || HOME;
+    setMeta(v.title, v.description);
+    const jobs = [];
+    if (r.name === 'home') { jobs.push(window.Works.initHero(main, signal)); window.Contact.init(main); }
+    if (r.name === 'works') jobs.push(window.Works.initList(main, signal));
+    if (r.name === 'detail') jobs.push(window.Works.initDetail(main, signal, r.id));
+    await Promise.all(jobs).catch((e) => console.error(e));
+    initFooter(view);
+    initEdges(view);
+    initNavCurrent(view, r.name, signal);
+    Reveal.observe(view);
+  }
+
+  function buildView(r) {
+    const view = document.createElement('div');
+    view.className = 'view';
+    view.innerHTML = `<main>${r.name === 'home' ? HOME.html : window.Views[r.name].html}</main>${FOOTER}`;
+    return view;
+  }
+
+  // 画面の中の要素（#contact など）を、ヘッダーの高さを差し引いた位置に出すためのスクロール量
+  function targetY(view, hash, top) {
+    let el = null;
+    try { el = hash && hash.length > 1 ? view.querySelector(decodeURIComponent(hash)) : null; } catch (e) { /* 不正な # は無視 */ }
+    if (!el) return null;
+    const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    return el.getBoundingClientRect().top - top - pad;
+  }
+
+  let current = { view: view0, ctrl: new AbortController(), route: null };
+  let busy = false;
+  const instant = (y) => {
+    const html = document.documentElement, prev = html.style.scrollBehavior;
+    html.style.scrollBehavior = 'auto';
+    window.scrollTo(0, Math.max(0, y));
+    html.style.scrollBehavior = prev;
+  };
+
+  async function navigate(url, { push = true, origin = null, y = null } = {}) {
+    if (busy) return;
+    busy = true;
+    const r = route(url);
+    if (push) {
+      history.replaceState({ ...(history.state || {}), y: window.scrollY }, '');
+      history.pushState({ y: 0 }, '', r.href);
+    }
+    document.body.classList.remove('menu-open');
+    const ctrl = new AbortController();
+    const view = buildView(r);
+    view.classList.add('view--next');
+    view.style.clipPath = 'polygon(0 0, 0 0, 0 0)';
+    const inner = document.createElement('div');
+    inner.className = 'view__inner';
+    inner.append(...view.childNodes);
+    view.append(inner);
+    document.body.append(view);
+    document.documentElement.classList.add('is-leaving');
+    await initView(view, r, ctrl.signal);
+
+    // どこまでスクロールした状態で見せるか（# があればその位置、戻る・進むなら前の位置）
+    const max = Math.max(0, inner.scrollHeight - window.innerHeight);
+    let top = y != null ? y : targetY(view, url.hash, inner.getBoundingClientRect().top) ?? 0;
+    top = Math.min(max, Math.max(0, top));
+    inner.style.transform = `translateY(${-top}px)`;
+    initClouds();
+    setTimeout(() => $('main', view).classList.add('is-ready'), 200);
+
+    const finish = () => {
+      current.ctrl.abort();
+      current.view.remove();
+      view.classList.remove('view--next');
+      view.style.clipPath = '';
+      inner.style.transform = '';
+      instant(top);
+      document.documentElement.classList.remove('is-leaving');
+      current = { view, ctrl, route: r };
+      busy = false;
+      const h = $('h1', view);
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    };
+    const o = origin || { x: window.innerWidth / 2, y: window.innerHeight * 0.45 };
+    Ink.InkTransition.play({ origin: o, onClip: (poly) => { view.style.clipPath = poly; }, done: finish });
+  }
+
+  function scrollToHash(hash) {
+    const y = hash && hash !== '#top' ? targetY(current.view, hash, -window.scrollY) : 0;
+    if (y == null) return;
+    window.scrollTo({ top: Math.max(0, y), behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  function initLinks() {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target === '_blank' || a.hasAttribute('download')) return;
+      const raw = a.getAttribute('href');
+      // 「#〇〇」だけのリンクは、今の画面の中でスクロール
+      if (raw.startsWith('#')) {
+        e.preventDefault();
+        document.body.classList.remove('menu-open');
+        scrollToHash(raw);
+        return;
+      }
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin || /\.(pdf|png|jpe?g|webp|zip)$/i.test(url.pathname)) return;
+      e.preventDefault();
+      document.body.classList.remove('menu-open');
+      const r = route(new URL(url.href));
+      // 同じ画面の中の移動はスクロールだけ
+      if (current.route && r.name === current.route.name && r.id === current.route.id && url.search === location.search) {
+        if (url.hash) history.replaceState(history.state, '', r.href);
+        scrollToHash(url.hash || '#top');
+        return;
+      }
+      navigate(url, { origin: { x: e.clientX, y: e.clientY } });
+    });
+    window.addEventListener('popstate', (e) => {
+      const r = route(new URL(location.href));
+      if (current.route && r.name === current.route.name && r.id === current.route.id) {
+        if (e.state && e.state.y != null) instant(e.state.y);
+        return;
+      }
+      navigate(new URL(location.href), { push: false, y: e.state ? e.state.y : null });
+    });
+  }
+
+  // 最初の読み込み：雫が手前から落ちて、着地したところからにじみが広がる
+  async function boot() {
+    const r = route(new URL(location.href));
+    if (r.href !== location.pathname + location.search + location.hash) history.replaceState({ y: 0 }, '', r.href);
+    if (r.name !== 'home') $('main', view0).innerHTML = window.Views[r.name].html;
+    current.route = r;
+    await initView(view0, r, current.ctrl.signal);
+    const y = targetY(view0, location.hash, -window.scrollY);
+    if (y != null) instant(y);
+    const html = document.documentElement;
+    const ready = () => {
+      $('main', view0).classList.add('is-ready');
+      initClouds();
+      Reveal.start();
+    };
+    const played = Ink.InkTransition.play({
+      origin: { x: window.innerWidth * 0.5, y: window.innerHeight * 0.46 },
+      duration: 1700,
+      paper: true,
+      drop: true,
+      onImpact: () => setTimeout(ready, 250)
+    });
+    // 1コマ目が描かれてから白い覆いを外す
+    requestAnimationFrame(() => requestAnimationFrame(() => html.classList.remove('is-covered')));
+    if (!played) ready();
+  }
+
+  window.Site = { Reveal, $, $$, setMeta };
 
   document.addEventListener('DOMContentLoaded', () => {
     initHeader();
-    initFooter();
-    initEdges();
     initPointer();
     initLinks();
-    Reveal.observe();
-    enterPage(() => {
-      document.body.classList.add('is-ready');
-      initClouds();
-      Reveal.start();
-    });
+    boot();
   });
 })();

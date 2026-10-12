@@ -2,8 +2,9 @@
 (function () {
   'use strict';
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('contact-form');
+  // ページ（ビュー）が表示されるたびに、その中のフォームに対して呼ばれる
+  function init(scope) {
+    const form = scope.querySelector('#contact-form');
     if (!form) return;
     const status = form.querySelector('.form__status');
     const submit = form.querySelector('[type="submit"]');
@@ -20,7 +21,7 @@
       const rule = rules[input.name];
       if (!rule) return true;
       const msg = rule(input.value);
-      const err = document.getElementById(`${input.id}-err`);
+      const err = form.querySelector(`#${input.id}-err`);
       input.setAttribute('aria-invalid', msg ? 'true' : 'false');
       if (err) err.textContent = msg;
       if (err && msg) input.setAttribute('aria-describedby', err.id);
@@ -82,5 +83,7 @@
         submit.firstChild.textContent = label;
       }
     });
-  });
+  }
+
+  window.Contact = { init };
 })();

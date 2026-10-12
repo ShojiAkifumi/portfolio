@@ -1,19 +1,24 @@
 # ショウジアキフミ ポートフォリオサイト
 
 バナー・LP制作の実績を掲載し、お問い合わせにつなげるポートフォリオサイトです。
-HTML / CSS / Vanilla JS のみで作っていて、GitHub Pages でそのまま公開できます。
+HTML / CSS / Vanilla JS のみで作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
+
+- URL は `/`（トップ）、`/works`（実績一覧）、`/works/実績ID`（実績詳細）です。以前の `works.html`・`work.html?id=` で開いた場合も、新しいURLに切り替わります。
+- どのURLで開いても `index.html` を返す設定が必要です。Cloudflare Pages はルートに `404.html` がなければ自動でそうなります（`404.html` は置かないでください）。手元では `npm run serve`（`serve.json` の設定）で同じ動きになります。
+- サイトのルート（`/`）に置く前提です。`https://〇〇.github.io/portfolio/` のようなサブフォルダでは画像などが読み込めません。
 
 ## ファイル構成
 
 | パス | 内容 |
 |---|---|
-| `index.html` | トップページ（ファーストビューの実績スライダー・強み・料金・流れ・プロフィール・お問い合わせ） |
-| `works.html` | 実績一覧（LP / バナーで絞り込み、「もっと見る」で追加表示） |
-| `work.html?id=実績ID` | 実績の詳細ページ（works.json から自動で作られます） |
+| `index.html` | サイトの土台とトップの中身（ファーストビューの実績スライダー・強み・料金・流れ・プロフィール・お問い合わせ） |
+| `js/views.js` | 実績一覧・実績詳細・404 の画面の中身 |
+| `js/main.js` | 画面の切り替え（URLと画面の対応、インクのにじみで切り替え）と共通の演出 |
+| `js/works.js` | 実績一覧（LP / バナーで絞り込み、「もっと見る」で追加表示）・実績詳細・スライダー |
 | `data/works.json` | **実績データ。ここに追記すると全ページに反映されます** |
 | `images/works/実績ID/` | 実績ごとの画像 |
 | `js/config.js` | フォームの送信先、SNSの表示、表示件数の設定 |
-| `js/ink.js` | インクのにじみ・画面切り替えの演出（WebGL） |
+| `js/ink.js` | インクのにじみ・最初の雫・画面切り替えの演出（WebGL） |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
 
 ## 実績を追加する
@@ -91,7 +96,12 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 npm run serve   # → http://localhost:8080
 ```
 
+## 公開する（Cloudflare Pages）
+
+1. Cloudflare のダッシュボードで「Workers & Pages」→「作成」→「Pages」→「Git に接続」を選び、GitHub の `ShojiAkifumi/portfolio` を選びます。
+2. ビルドの設定は、フレームワーク「なし」、ビルドコマンドは空欄、出力ディレクトリは `/` のままにします。
+3. 保存すると `https://〇〇.pages.dev` で公開されます。以後は GitHub の main に push するたびに自動で更新されます。
+
 ## 独自ドメイン
 
-ドメイン取得後、GitHub の Settings → Pages → Custom domain にドメインを入力し、
-DNS に GitHub Pages 用のレコードを設定します。
+ドメイン取得後、Cloudflare Pages のプロジェクトの「カスタムドメイン」から追加します。

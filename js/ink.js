@@ -1,6 +1,6 @@
 // インク表現のエンジン
 //  - InkCloud     : WebGL で描く、ふわっと広がり漂う水彩インク（ヒーローなどの背景）
-//  - InkTransition: インクが広がって画面が切り替わるページ遷移
+//  - InkTransition: インクが広がって画面が切り替わるページ遷移（最初の読み込みは雫が落ちてから広がる）
 //  - sprites      : 要素をインクの形で表示するためのマスク画像（CSS mask 用）
 (function () {
   'use strict';
@@ -55,37 +55,81 @@
     }
   `;
 
-  // 画面切り替え。uMode=0: 紙→インク→ページが現れる / uMode=1: ページ→インク→紙で覆う
-  const TRANSITION_FRAG = NOISE + `
-    uniform float uP;
-    uniform float uMode;
-    uniform float uMax;
+  // 画面切り替えのにじみ。座標はすべて CSS の px（左上が原点）
+  //  - uOrigin から、輪郭 radius(θ) のインクが広がる。内側は次の画面、外側は今の画面（uPaper=1 なら白い紙）
+  //  - 最初の読み込みでは、手前から落ちてくる雫（uDrop…）と、着地の波紋（uRip…）も描く
+  const BLOOM_FRAG = NOISE + `
+    uniform vec2 uView;
     uniform vec2 uOrigin;
+    uniform float uR;
+    uniform float uW;
+    uniform float uPaper;
+    uniform float uK[8];
+    uniform float uA[8];
+    uniform float uPh[8];
+    uniform vec2 uDrop;
+    uniform float uDropR;
+    uniform float uDropA;
+    uniform float uDropSoft;
+    uniform float uShadow;
+    uniform float uRipR;
+    uniform float uRipA;
+    float radius(float th){
+      float s=0.;
+      for(int i=0;i<8;i++) s+=uA[i]*sin(uK[i]*th+uPh[i]);
+      return uR*(1.+s);
+    }
+    vec4 over(vec4 dst, vec3 c, float a){ return vec4(c*a+dst.rgb*(1.-a), a+dst.a*(1.-a)); }
     void main(){
-      vec2 uv=gl_FragCoord.xy/uRes;
-      float asp=uRes.x/uRes.y;
-      vec2 p=(uv-uOrigin)*vec2(asp,1.);
+      vec2 px=vec2(gl_FragCoord.x, uRes.y-gl_FragCoord.y)/uRes*uView;
+      float unit=min(uView.x,uView.y);
+      vec2 p=px-uOrigin;
       float d=length(p);
-      vec2 dir=d>0.?p/d:vec2(1.,0.);
-      float n=fbm(p*1.25+3.1);
-      float ten=mix(.5,fbm(dir*2.4+d*1.6),smoothstep(0.,.4,d));
-      float fine=fbm(p*6.);
-      float R=uP*(uMax+.7)/.62;
-      float e1=R*(.6+.75*n)+(ten-.5)*.42*R+(fine-.5)*.08*R;
-      float e2=e1-.36-.25*n;
-      float outer=smoothstep(e1-.03,e1+.03,d);
-      float inner=1.-smoothstep(e2-.14,e2+.14,d);
-      float band=(1.-outer)*(1.-inner);
-      float cloud=fbm(p*2.2+vec2(n*2.,ten));
+      float th=atan(p.y,p.x);
+      vec2 n=p/unit;
+      vec4 col=vec4(0.);
+
+      // インクの輪郭（細かなゆらぎは見た目だけ。切り替えの境目はこれより内側にある）
+      float rr=radius(th);
+      float fine=fbm(vec2(th*4.,d/unit*3.)+uTime*.15);
+      float edge=rr+(fine-.5)*uW*.22;
+      float outer=smoothstep(edge-1.2,edge+1.2,d);
+
+      // 白い紙（最初の読み込み）
+      col=over(col, vec3(1.), outer*uPaper);
+
+      // 着地点の影：雫が近づくほど小さく濃くなる
+      vec2 sh=p/(14.+40.*(1.-uShadow));
+      col=over(col, vec3(.52,.68,.84), exp(-dot(sh,sh)*1.6)*uShadow*.28*uPaper);
+
+      // インク：外のふちが濃く、内側へ向かって紙ににじむように薄くなる
+      float cloud=fbm(n*2.2+vec2(0.,uTime*.04));
+      float soak=smoothstep(rr-uW, rr-.3*uW, d+(cloud-.5)*uW*.5);
+      float aInk=soak*(1.-outer)*.95;
       vec3 ink=mix(vec3(.80,.92,.99),vec3(.47,.70,.94),smoothstep(.35,.75,cloud));
-      ink=mix(ink,vec3(.667),smoothstep(.58,.8,fbm(p*1.6+7.))*.4);
-      float pool=smoothstep(e1-.07,e1,d)*(1.-outer);
-      ink=mix(ink,vec3(.40,.62,.90),pool*.35);
-      float wisp=smoothstep(.55,.7,fbm(vec2(p.x*1.4,p.y*5.)+cloud*1.5));
-      ink=mix(ink,vec3(1.),wisp*.4);
-      float aPaper=mix(outer,inner,uMode);
-      float aInk=band*.94;
-      gl_FragColor=vec4(vec3(1.)*aPaper+ink*aInk,clamp(aPaper+aInk,0.,1.));
+      ink=mix(ink,vec3(.667),smoothstep(.58,.8,fbm(n*1.6+7.))*.3);
+      float pool=smoothstep(edge-uW*.2,edge,d)*(1.-outer);
+      ink=mix(ink,vec3(.40,.62,.90),pool*.5);
+      float wisp=smoothstep(.55,.7,fbm(vec2(n.x*1.4,n.y*5.)+cloud*1.5));
+      ink=mix(ink,vec3(1.),wisp*.35);
+      col=over(col, ink, aInk);
+
+      // 着地の波紋
+      float ring=exp(-pow((d-uRipR)/(3.+uRipR*.08),2.));
+      col=over(col, vec3(.55,.78,.96), ring*uRipA);
+
+      // 落ちてくる雫：手前ではぼけて大きく、奥へ行くほど小さくくっきり
+      vec2 q=(px-uDrop)/max(uDropR,.001);
+      float dd=length(q);
+      float body=1.-smoothstep(1.-uDropSoft,1.+uDropSoft,dd);
+      vec3 dc=mix(vec3(.90,.96,1.),vec3(.63,.835,.97),smoothstep(.1,1.,dd));
+      dc=mix(dc,vec3(.42,.66,.91),smoothstep(.72,1.,dd)*.55);
+      vec2 h=q-vec2(-.34,-.40);
+      vec2 c2=q-vec2(.22,.46);
+      dc=mix(dc,vec3(1.),clamp(exp(-dot(h,h)*14.)+exp(-dot(c2,c2)*9.)*.45,0.,1.));
+      col=over(col, dc, body*uDropA);
+
+      gl_FragColor=col;
     }
   `;
 
@@ -118,6 +162,10 @@
         if (!(name in u)) u[name] = gl.getUniformLocation(prog, name);
         if (u[name] == null) return;
         v.length === 1 ? gl.uniform1f(u[name], v[0]) : gl.uniform2f(u[name], v[0], v[1]);
+      },
+      setv(name, arr) {
+        if (!(name in u)) u[name] = gl.getUniformLocation(prog, name);
+        if (u[name] != null) gl.uniform1fv(u[name], new Float32Array(arr));
       },
       draw() { gl.drawArrays(gl.TRIANGLES, 0, 3); },
       resize(scale) {
@@ -181,6 +229,25 @@
   }
 
   /* ================= 画面切り替え ================= */
+  // にじみの輪郭。シェーダーと同じ式で、次の画面を切り抜く形（clip-path）も作る
+  const K = [2, 3, 4, 5, 7, 9, 13, 17];
+  const AMP = [0.07, 0.06, 0.05, 0.04, 0.03, 0.025, 0.018, 0.012];
+  const SUM_A = AMP.reduce((a, b) => a + b, 0);
+  function shape() {
+    return {
+      a: AMP.map((v) => v * (Math.random() < 0.5 ? -1 : 1) * (0.7 + Math.random() * 0.3)),
+      ph: K.map(() => Math.random() * Math.PI * 2),
+      sp: K.map((k) => (Math.random() - 0.5) * 0.6 / Math.sqrt(k))
+    };
+  }
+  const radiusAt = (sh, ph, R, th) => {
+    let s = 0;
+    for (let i = 0; i < K.length; i++) s += sh.a[i] * Math.sin(K[i] * th + ph[i]);
+    return R * (1 + s);
+  };
+
+  const easeOut = (x) => 1 - Math.pow(1 - x, 1.8);
+
   const InkTransition = {
     canvas: null, g: null,
     ensure() {
@@ -188,37 +255,89 @@
       const c = document.createElement('canvas');
       c.className = 'ink-transition';
       c.setAttribute('aria-hidden', 'true');
+      c.hidden = true;
       document.body.appendChild(c);
       this.canvas = c;
-      this.g = createGL(c, TRANSITION_FRAG);
+      this.g = createGL(c, BLOOM_FRAG);
       if (!this.g) { c.remove(); this.canvas = null; }
       return this.g;
     },
-    // mode 0: 現れる / 1: 覆う。origin はビューポート上の px
-    play(mode, origin, duration, done) {
+    // にじみを1回再生する
+    //  origin: {x, y}（ビューポートの px） / paper: 外側を白い紙にする / drop: 先に雫を落とす
+    //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
+    play({ origin, duration = 1500, paper = false, drop = false, onClip, onImpact, done }) {
       const g = this.ensure();
-      if (!g || reduceMotion) { done && done(); return false; }
+      if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
       const c = this.canvas;
       c.hidden = false;
-      const r = g.resize(Math.min(1, 900 / Math.max(window.innerWidth, 1)) * Math.min(window.devicePixelRatio || 1, 1.5));
-      const asp = r.width / r.height;
-      const ox = origin.x / r.width, oy = 1 - origin.y / r.height;
-      const corners = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => Math.hypot((x - ox) * asp, y - oy));
+      c.classList.toggle('is-cover', paper);
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const r = g.resize(Math.min(1, 900 / Math.max(vw, 1)) * Math.min(window.devicePixelRatio || 1, 1.5));
+      const unit = Math.min(vw, vh);
+      const maxD = Math.max(...[[0, 0], [vw, 0], [0, vh], [vw, vh]].map(([x, y]) => Math.hypot(x - origin.x, y - origin.y)));
+      const W = Math.min(220, Math.max(70, Math.max(vw, vh) * 0.14));
+      const Rend = (maxD + W + 24) / (1 - SUM_A);
+      const sh = shape();
       g.set('uRes', c.width, c.height);
-      g.set('uMax', Math.max(...corners));
-      g.set('uOrigin', ox, oy);
-      g.set('uMode', mode);
+      g.set('uView', r.width, r.height);
+      g.set('uOrigin', origin.x, origin.y);
+      g.set('uW', W);
+      g.set('uPaper', paper ? 1 : 0);
+      g.setv('uK', K);
+      g.setv('uA', sh.a);
+
+      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、だんだん速く落ちる
+      const DROP = drop ? 950 : 0;
+      const R0 = Math.min(420, Math.max(170, unit * 0.46));
+      const off = { x: -vw * 0.16, y: vh * 0.34 };
+      const RIP = 520;
+
       const t0 = performance.now();
-      const ease = mode ? (x) => x * x * (3 - 2 * x) : (x) => 1 - Math.pow(1 - x, 2.4);
+      let impacted = !drop;
+      if (!drop && onImpact) onImpact();
       const step = (now) => {
-        const x = Math.min(1, (now - t0) / duration);
-        g.set('uP', ease(x));
-        g.set('uTime', now / 1000);
+        const t = now - t0;
+        // 雫
+        if (t < DROP) {
+          const x = t / DROP;
+          const z = 1 + 27 * Math.pow(x, 2.3);
+          g.set('uDrop', origin.x + off.x / z, origin.y + off.y / z);
+          g.set('uDropR', R0 / z);
+          g.set('uDropSoft', Math.min(0.85, 0.05 + 0.8 / z));
+          g.set('uDropA', Math.min(0.92, 0.18 + 0.8 * x));
+          g.set('uShadow', Math.pow(x, 1.6));
+        } else {
+          g.set('uDropA', 0);
+          g.set('uShadow', drop ? Math.max(0, 1 - (t - DROP) / 200) : 0);
+          if (!impacted) { impacted = true; onImpact && onImpact(); }
+        }
+        // 波紋
+        const tr = (t - DROP) / RIP;
+        g.set('uRipR', drop && tr > 0 ? 6 + 110 * easeOut(Math.min(1, tr)) : 0);
+        g.set('uRipA', drop && tr > 0 && tr < 1 ? 0.7 * (1 - tr) : 0);
+        // にじみ
+        const x = Math.min(1, Math.max(0, (t - DROP) / duration));
+        const R = easeOut(x) * Rend;
+        const tt = t / 1000;
+        const ph = sh.ph.map((p, i) => p + sh.sp[i] * tt);
+        g.set('uR', R);
+        g.setv('uPh', ph);
+        g.set('uTime', 30 + tt);
         g.gl.clearColor(0, 0, 0, 0);
         g.gl.clear(g.gl.COLOR_BUFFER_BIT);
         g.draw();
+        if (onClip) {
+          // 境目は輪郭より内側（インクが濃いところ）に置いて、継ぎ目を隠す
+          const pts = [];
+          for (let i = 0; i < 120; i++) {
+            const th = (i / 120) * Math.PI * 2 - Math.PI;
+            const rc = Math.max(0, radiusAt(sh, ph, R, th) - 0.3 * W);
+            pts.push(`${(origin.x + Math.cos(th) * rc).toFixed(1)}px ${(origin.y + Math.sin(th) * rc).toFixed(1)}px`);
+          }
+          onClip(`polygon(${pts.join(',')})`);
+        }
         if (x < 1) requestAnimationFrame(step);
-        else { if (mode === 0) c.hidden = true; done && done(); }
+        else { c.hidden = true; done && done(); }
       };
       requestAnimationFrame(step);
       return true;
