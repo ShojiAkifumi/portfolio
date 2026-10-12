@@ -17,14 +17,16 @@
       "required": true,
       "selectItems": [
         {
+          "id": "268f207079",
           "value": "LP"
         },
         {
+          "id": "d172a5a727",
           "value": "バナー"
         }
       ],
       "multipleSelect": false,
-      "initialValue": null
+      "initialValue": []
     },
     {
       "fieldId": "type",
@@ -34,14 +36,16 @@
       "required": true,
       "selectItems": [
         {
+          "id": "bdcbea2ad2",
           "value": "自主制作"
         },
         {
+          "id": "72808984bc",
           "value": "実案件"
         }
       ],
       "multipleSelect": false,
-      "initialValue": null
+      "initialValue": []
     },
     {
       "fieldId": "client",
@@ -76,20 +80,24 @@
       "required": false,
       "selectItems": [
         {
+          "id": "b6d6b4b635",
           "value": "デザイン"
         },
         {
+          "id": "cf5d1f6cc4",
           "value": "コーディング"
         },
         {
+          "id": "de638a8774",
           "value": "ディレクション"
         },
         {
+          "id": "1f4c78d246",
           "value": "ライティング"
         }
       ],
       "multipleSelect": true,
-      "initialValue": null
+      "initialValue": []
     },
     {
       "fieldId": "period",
