@@ -391,7 +391,7 @@
       initClouds();
       Reveal.start();
     };
-    // トップだけ雫を落とす。PC・タブレットは正面の実績（スライダーの中心）に、スマホは画面の中央に落ちる
+    // トップだけ雫を落とす。PC・タブレットは正面の実績（スライダーの中心）の近くに、スマホは画面の中心の少し下に落ちる
     const home = r.name === 'home';
     let origin = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.46 };
     const front = home && window.innerWidth > 640 && $('.arc-item.is-front', view0);
@@ -399,8 +399,9 @@
       const b = front.getBoundingClientRect();
       if (b.width) origin = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
     }
-    // そこから画面の幅・高さの5%ずつ右上へずらす
-    if (home) {
+    // そこから画面の幅・高さの5%ずつ右上へずらす（スマホは画面の中心から高さの10%下）
+    if (home && !front) origin = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.6 };
+    else if (home) {
       origin = {
         x: Math.min(window.innerWidth * 0.95, origin.x + window.innerWidth * 0.05),
         y: Math.max(window.innerHeight * 0.05, origin.y - window.innerHeight * 0.05)
