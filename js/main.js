@@ -376,7 +376,7 @@
     });
   }
 
-  // 最初の読み込み：雫が手前から落ちて、着地したところからにじみが広がる
+  // 最初の読み込み：トップは雫が手前から落ちて、着地したところからにじみが広がる（ほかの画面はにじみだけ）
   async function boot() {
     const r = route(new URL(location.href));
     if (r.href !== location.pathname + location.search + location.hash) history.replaceState({ y: 0 }, '', r.href);
@@ -391,12 +391,21 @@
       initClouds();
       Reveal.start();
     };
+    // トップだけ雫を落とす。PC・タブレットは正面の実績（スライダーの中心）に、スマホは画面の中央に落ちる
+    const home = r.name === 'home';
+    let origin = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.46 };
+    const front = home && window.innerWidth > 640 && $('.arc-item.is-front', view0);
+    if (front) {
+      const b = front.getBoundingClientRect();
+      if (b.width) origin = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    }
+    if (home) await Ink.InkTransition.preload(1200);
     const played = Ink.InkTransition.play({
-      origin: { x: window.innerWidth * 0.5, y: window.innerHeight * 0.46 },
+      origin,
       duration: 1700,
       paper: true,
-      drop: true,
-      onImpact: () => setTimeout(ready, 250)
+      drop: home,
+      onImpact: () => setTimeout(ready, home ? 250 : 150)
     });
     // 1コマ目が描かれてから白い覆いを外す
     requestAnimationFrame(() => requestAnimationFrame(() => html.classList.remove('is-covered')));

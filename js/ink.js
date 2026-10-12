@@ -77,6 +77,8 @@
     uniform float uShadow;
     uniform float uRipR;
     uniform float uRipA;
+    uniform sampler2D uDropTex;
+    uniform float uHasTex;
     float hash(vec2 i){return texture2D(uLut,(mod(i,256.)+.5)/256.).r;}
     float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
       return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x),u.y);}
@@ -114,7 +116,9 @@
       ink=mix(ink,vec3(.86,.94,1.),rim*.55);
       float wisp=smoothstep(.55,.7,fbm(vec2(p.x*1.4,p.y*5.)+cloud*1.5));
       ink=mix(ink,vec3(1.),wisp*.4);
-      band*=1.-rim*.55;
+      // 全体を少し淡く
+      ink=mix(ink,vec3(1.),.12);
+      band*=(1.-rim*.55)*.84;
 
       vec4 col=vec4(0.);
       col=over(col, vec3(1.), outer*uPaper);
@@ -126,16 +130,20 @@
       float dp=length(px-uOrigin);
       float ring=exp(-pow((dp-uRipR)/(3.+uRipR*.08),2.));
       col=over(col, vec3(.55,.78,.96), ring*uRipA);
-      // 落ちてくる雫：手前ではぼけて大きく、奥へ行くほど小さくくっきり
+      // 落ちてくる雫：ロゴと同じ水彩のにじみ。手前ではぼけて大きく、奥へ行くほど小さくくっきり
       vec2 q=(px-uDrop)/max(uDropR,.001);
-      float dd=length(q);
-      float body=1.-smoothstep(1.-uDropSoft,1.+uDropSoft,dd);
-      vec3 dc=mix(vec3(.90,.96,1.),vec3(.63,.835,.97),smoothstep(.1,1.,dd));
-      dc=mix(dc,vec3(.42,.66,.91),smoothstep(.72,1.,dd)*.55);
-      vec2 h=q-vec2(-.34,-.40);
-      vec2 c2=q-vec2(.22,.46);
-      dc=mix(dc,vec3(1.),clamp(exp(-dot(h,h)*14.)+exp(-dot(c2,c2)*9.)*.45,0.,1.));
-      col=over(col, dc, body*uDropA);
+      if(uHasTex>.5){
+        vec2 tuv=q*.37+.5;
+        if(uDropA>0.&&tuv.x>0.&&tuv.x<1.&&tuv.y>0.&&tuv.y<1.){
+          vec4 t=texture2D(uDropTex,tuv,uDropSoft*7.);
+          col=vec4(t.rgb*uDropA+col.rgb*(1.-t.a*uDropA), t.a*uDropA+col.a*(1.-t.a*uDropA));
+        }
+      }else{
+        float dd=length(q);
+        float body=1.-smoothstep(1.-uDropSoft,1.+uDropSoft,dd);
+        vec3 dc=mix(vec3(.80,.91,.99),vec3(.63,.835,.97),smoothstep(.1,1.,dd));
+        col=over(col, dc, body*uDropA);
+      }
       gl_FragColor=col;
     }
   `;
@@ -328,10 +336,38 @@
       };
       tex(0, 256, 256, gl.LUMINANCE, LUT);
       this.rcTex = tex(1, RAYS, 1, gl.RGBA, new Uint8Array(RAYS * 4));
+      // 雫の画像（ロゴのにじみ）。読み込めるまでは丸い雫で代わりに描く
+      this.dropReady = new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          gl.activeTexture(gl.TEXTURE2);
+          const t = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, t);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+          gl.generateMipmap(gl.TEXTURE_2D);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          this.g.set('uHasTex', 1);
+          resolve(true);
+        };
+        img.onerror = () => resolve(false);
+        img.src = '/images/ink-drop.png';
+      });
       this.g.seti('uLut', 0);
       this.g.seti('uRc', 1);
+      this.g.seti('uDropTex', 2);
+      this.g.set('uHasTex', 0);
       this.g.set('uRcN', RAYS);
       return this.g;
+    },
+    // 雫の画像を先に読み込んでおく（最大 ms ミリ秒待つ）
+    preload(ms) {
+      if (!this.ensure() || reduceMotion) return Promise.resolve();
+      return Promise.race([this.dropReady, new Promise((r) => setTimeout(r, ms))]);
     },
     // にじみを1回再生する
     //  origin: {x, y}（ビューポートの px） / paper: 外側を白い紙にする / drop: 先に雫を落とす
@@ -353,8 +389,8 @@
       g.set('uPaper', paper ? 1 : 0);
       g.set('uRcMax', rcMax);
 
-      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、だんだん速く落ちる
-      const DROP = drop ? 950 : 0;
+      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.5秒でだんだん速く落ちる
+      const DROP = drop ? 500 : 0;
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
