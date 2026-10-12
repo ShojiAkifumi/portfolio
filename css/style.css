@@ -747,10 +747,12 @@ html:not(.ink-masks) .ink-edge {
   filter: none;
 }
 
-/* 最初の読み込みでは、STRENGTH を雫の着地から1秒後に現す（JS が .is-held を外す） */
+/* 最初の読み込みでは、ヘッダーを雫の着地から0.3秒後、STRENGTH を1秒後に現す（JS が .is-held を外す） */
+.header,
 #strength {
   transition: opacity 1s var(--soft);
 }
+.header.is-held,
 #strength.is-held {
   opacity: 0;
   transition: none;

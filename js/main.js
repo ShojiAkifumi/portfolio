@@ -408,6 +408,8 @@
     }
     const strength = home && !reduceMotion ? $('#strength', view0) : null;
     if (strength) strength.classList.add('is-held');
+    const header = home && !reduceMotion ? $('.header') : null;
+    if (header) header.classList.add('is-held');
     if (home) await Ink.InkTransition.preload(1200);
     const played = Ink.InkTransition.play({
       origin,
@@ -418,6 +420,8 @@
         setTimeout(ready, 40);
         // STRENGTH は着地から1秒後に現す
         setTimeout(() => strength && strength.classList.remove('is-held'), 1000);
+        // ヘッダーは着地から0.3秒後に現す
+        setTimeout(() => header && header.classList.remove('is-held'), 300);
       }
     });
     // 1コマ目が描かれてから白い覆いを外す
