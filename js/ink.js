@@ -133,13 +133,15 @@
           vec4 t=texture2D(uDropTex,tuv,uDropSoft*7.);
           // 色の鮮やかさを少し落とす
           t.rgb=mix(t.rgb,vec3(dot(t.rgb,vec3(.299,.587,.114))),.35);
+          // 濃さを半分に（白い紙の上で、色が半分ほどの淡さになる）
+          t*=.5;
           col=vec4(t.rgb*uDropA+col.rgb*(1.-t.a*uDropA), t.a*uDropA+col.a*(1.-t.a*uDropA));
         }
       }else{
         float dd=length(q);
         float body=1.-smoothstep(1.-uDropSoft,1.+uDropSoft,dd);
         vec3 dc=mix(vec3(.80,.91,.99),vec3(.63,.835,.97),smoothstep(.1,1.,dd));
-        col=over(col, dc, body*uDropA);
+        col=over(col, dc, body*uDropA*.5);
       }
       gl_FragColor=col;
     }
