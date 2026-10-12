@@ -10,10 +10,10 @@ const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matc
 type Point = { x: number; y: number };
 
 /* ---------- ヘッダー ---------- */
-// スマホのメニューの中のリンクで閉じた時は true（パネルが消えるのを待ってから画面を切り替える）
-let menuClosedByLink = false;
-// メニューのパネルが消える時間（scss/_header.scss の .nav の transition と同じ）
-const MENU_FADE_MS = 500;
+// スマホのメニューの中のリンクを押した時は true（画面の切り替えが始まるのと同時にパネルを消す）
+let menuLinkClicked = false;
+// スマホのメニューを閉じる（initHeader で aria 属性も切り替えるものに差し替え）
+let closeMenu = () => document.body.classList.remove("menu-open");
 
 function initHeader() {
   const header = $(".header");
@@ -31,10 +31,11 @@ function initHeader() {
       btn.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
     };
     btn.addEventListener("click", () => set(!document.body.classList.contains("menu-open")));
+    closeMenu = () => set(false);
+    // ここでは閉じず、initLinks のクリック処理で閉じる（ページを切り替える時は、切り替えと同時に閉じる）
     $$("a", nav).forEach((a) =>
       a.addEventListener("click", () => {
-        menuClosedByLink = document.body.classList.contains("menu-open");
-        set(false);
+        menuLinkClicked = document.body.classList.contains("menu-open");
       }),
     );
     document.addEventListener("keydown", (e) => {
@@ -302,15 +303,19 @@ let busy = false;
 // CSS の scroll-behavior: smooth を無視して、その場で一瞬でスクロール位置を合わせる
 const instant = (y: number) => window.scrollTo({ top: Math.max(0, y), left: 0, behavior: "instant" });
 
-async function navigate(url: URL, { push = true, origin = null as Point | null, y = null as number | null } = {}) {
-  if (busy) return;
+// keepMenu: スマホのメニューを開いたままにしておき、切り替えのアニメーションが始まるのと同時に閉じる
+async function navigate(
+  url: URL,
+  { push = true, origin = null as Point | null, y = null as number | null, keepMenu = false } = {},
+) {
+  if (busy) return closeMenu();
   busy = true;
   const r = route(url);
   if (push) {
     history.replaceState({ ...(history.state || {}), y: window.scrollY }, "");
     history.pushState({ y: 0 }, "", r.href);
   }
-  document.body.classList.remove("menu-open");
+  if (!keepMenu) closeMenu();
   const ctrl = new AbortController();
   const view = buildView(r);
   view.classList.add("view--next");
@@ -331,7 +336,14 @@ async function navigate(url: URL, { push = true, origin = null as Point | null, 
   initClouds(view, ctrl.signal);
   setTimeout(() => $("main", view)?.classList.add("is-ready"), 200);
 
+  // 開いたままにしておいたメニューを閉じる（アニメーションしない設定の時は、切り替えの後に閉じる）
+  const releaseMenu = () => {
+    if (!keepMenu) return;
+    keepMenu = false;
+    closeMenu();
+  };
   const finish = () => {
+    releaseMenu();
     current.ctrl.abort();
     current.view.remove();
     view.classList.remove("view--next");
@@ -351,6 +363,7 @@ async function navigate(url: URL, { push = true, origin = null as Point | null, 
   InkTransition.play({
     origin: o,
     onClip: (poly) => {
+      releaseMenu();
       view.style.clipPath = poly;
     },
     done: finish,
@@ -366,36 +379,44 @@ function scrollToHash(hash: string) {
 function initLinks() {
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   document.addEventListener("click", (e) => {
-    const fromMenu = menuClosedByLink;
-    menuClosedByLink = false;
+    const fromMenu = menuLinkClicked;
+    menuLinkClicked = false;
+    let keepMenu = false;
+    try {
+      keepMenu = onClick(e, fromMenu);
+    } finally {
+      if (fromMenu && !keepMenu) closeMenu();
+    }
+  });
+  // 戻り値：スマホのメニューを開いたまま画面の切り替えを始めた時は true
+  function onClick(e: MouseEvent, fromMenu: boolean): boolean {
     const a = (e.target as Element).closest?.<HTMLAnchorElement>("a[href]");
-    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (a.target === "_blank" || a.hasAttribute("download")) return;
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
+    if (a.target === "_blank" || a.hasAttribute("download")) return false;
     const raw = a.getAttribute("href") || "";
     // 「#〇〇」だけのリンクは、今の画面の中でスクロール
     if (raw.startsWith("#")) {
       e.preventDefault();
-      document.body.classList.remove("menu-open");
+      closeMenu();
       scrollToHash(raw);
-      return;
+      return false;
     }
     const url = new URL(a.href, location.href);
-    if (url.origin !== location.origin || /\.(pdf|png|jpe?g|webp|zip)$/i.test(url.pathname)) return;
+    if (url.origin !== location.origin || /\.(pdf|png|jpe?g|webp|zip)$/i.test(url.pathname)) return false;
     e.preventDefault();
-    document.body.classList.remove("menu-open");
     const r = route(new URL(url.href));
     // 同じ画面の中の移動はスクロールだけ
     if (current.route && r.name === current.route.name && r.id === current.route.id && url.search === location.search) {
       if (url.hash) history.replaceState(history.state, "", r.href);
+      closeMenu();
       scrollToHash(url.hash || "#top");
-      return;
+      return false;
     }
-    const go = () => navigate(url, { origin: { x: e.clientX, y: e.clientY } });
-    // メニューから移動する時は、パネルがバツで閉じた時と同じようにゆっくり消えてから切り替える
-    // （すぐに切り替えると、次の画面の準備の間アニメーションが止まり、パネルがパッと消えて見える）
-    if (fromMenu) setTimeout(go, MENU_FADE_MS);
-    else go();
-  });
+    // メニューから移動する時は、次の画面の準備ができるまでパネルを出したままにして、
+    // にじみ始めるのと同時にパネルをゆっくり消す（準備の間はアニメーションが止まるため）
+    navigate(url, { origin: { x: e.clientX, y: e.clientY }, keepMenu: fromMenu });
+    return fromMenu;
+  }
   window.addEventListener("popstate", (e) => {
     const r = route(new URL(location.href));
     if (current.route && r.name === current.route.name && r.id === current.route.id) {
