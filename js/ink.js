@@ -55,18 +55,21 @@
     }
   `;
 
-  // 画面切り替えのにじみ。座標はすべて CSS の px（左上が原点）
-  //  - uOrigin から、輪郭 radius(θ) のインクが広がる。内側は次の画面、外側は今の画面（uPaper=1 なら白い紙）
-  //  - 最初の読み込みでは、手前から落ちてくる雫（uDrop…）と、着地の波紋（uRip…）も描く
-  const BLOOM_FRAG = NOISE + `
+  // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
+  //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
+  //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
+  //  - 最初の読み込みでは、外側を白い紙にし（uPaper=1）、手前から落ちてくる雫と着地の波紋も描く
+  const BLOOM_FRAG = `
+    precision highp float;
+    uniform vec2 uRes;
     uniform vec2 uView;
     uniform vec2 uOrigin;
     uniform float uR;
-    uniform float uW;
     uniform float uPaper;
-    uniform float uK[8];
-    uniform float uA[8];
-    uniform float uPh[8];
+    uniform sampler2D uLut;
+    uniform sampler2D uRc;
+    uniform float uRcN;
+    uniform float uRcMax;
     uniform vec2 uDrop;
     uniform float uDropR;
     uniform float uDropA;
@@ -74,50 +77,52 @@
     uniform float uShadow;
     uniform float uRipR;
     uniform float uRipA;
-    float radius(float th){
-      float s=0.;
-      for(int i=0;i<8;i++) s+=uA[i]*sin(uK[i]*th+uPh[i]);
-      return uR*(1.+s);
+    float hash(vec2 i){return texture2D(uLut,(mod(i,256.)+.5)/256.).r;}
+    float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);
+      for(int i=0;i<5;i++){v+=a*noise(p);p=m*p;a*=.5;}return v;}
+    float rcAt(float k){
+      float i=floor(k), f=k-i;
+      vec4 a=texture2D(uRc,vec2((mod(i,uRcN)+.5)/uRcN,.5));
+      vec4 b=texture2D(uRc,vec2((mod(i+1.,uRcN)+.5)/uRcN,.5));
+      float ra=(a.r*255.*256.+a.g*255.)/65535.;
+      float rb=(b.r*255.*256.+b.g*255.)/65535.;
+      return mix(ra,rb,f)*uRcMax;
     }
     vec4 over(vec4 dst, vec3 c, float a){ return vec4(c*a+dst.rgb*(1.-a), a+dst.a*(1.-a)); }
     void main(){
       vec2 px=vec2(gl_FragCoord.x, uRes.y-gl_FragCoord.y)/uRes*uView;
-      float unit=min(uView.x,uView.y);
-      vec2 p=px-uOrigin;
+      vec2 p=vec2(px.x-uOrigin.x, uOrigin.y-px.y)/uView.y;
       float d=length(p);
+      vec2 dir=d>0.?p/d:vec2(1.,0.);
+      float n=fbm(p*1.25+3.1);
+      float ten=mix(.5,fbm(dir*2.4+d*1.6),smoothstep(0.,.4,d));
+      float fine=fbm(p*6.);
+      float e1=uR*(.6+.75*n)+(ten-.5)*.42*uR+(fine-.5)*.08*uR;
+      float outer=smoothstep(e1-.03,e1+.03,d);
+      // 次の画面が見える範囲の境目（JS の clip-path と同じ）。そのすぐ内側までインクを重ねて継ぎ目を隠す
       float th=atan(p.y,p.x);
-      vec2 n=p/unit;
-      vec4 col=vec4(0.);
-
-      // インクの輪郭（細かなゆらぎは見た目だけ。切り替えの境目はこれより内側にある）
-      float rr=radius(th);
-      float fine=fbm(vec2(th*4.,d/unit*3.)+uTime*.15);
-      float edge=rr+(fine-.5)*uW*.22;
-      float outer=smoothstep(edge-1.2,edge+1.2,d);
-
-      // 白い紙（最初の読み込み）
-      col=over(col, vec3(1.), outer*uPaper);
-
-      // 着地点の影：雫が近づくほど小さく濃くなる
-      vec2 sh=p/(14.+40.*(1.-uShadow));
-      col=over(col, vec3(.52,.68,.84), exp(-dot(sh,sh)*1.6)*uShadow*.28*uPaper);
-
-      // インク：外のふちが濃く、内側へ向かって紙ににじむように薄くなる
-      float cloud=fbm(n*2.2+vec2(0.,uTime*.04));
-      float soak=smoothstep(rr-uW, rr-.3*uW, d+(cloud-.5)*uW*.5);
-      float aInk=soak*(1.-outer)*.95;
+      float rc=rcAt((th+3.14159265)/6.28318531*uRcN);
+      float band=(1.-outer)*smoothstep(rc-.16,rc-.01,d);
+      float cloud=fbm(p*2.2+vec2(n*2.,ten));
       vec3 ink=mix(vec3(.80,.92,.99),vec3(.47,.70,.94),smoothstep(.35,.75,cloud));
-      ink=mix(ink,vec3(.667),smoothstep(.58,.8,fbm(n*1.6+7.))*.3);
-      float pool=smoothstep(edge-uW*.2,edge,d)*(1.-outer);
-      ink=mix(ink,vec3(.40,.62,.90),pool*.5);
-      float wisp=smoothstep(.55,.7,fbm(vec2(n.x*1.4,n.y*5.)+cloud*1.5));
-      ink=mix(ink,vec3(1.),wisp*.35);
-      col=over(col, ink, aInk);
+      ink=mix(ink,vec3(.667),smoothstep(.58,.8,fbm(p*1.6+7.))*.4);
+      float pool=smoothstep(e1-.07,e1,d)*(1.-outer);
+      ink=mix(ink,vec3(.40,.62,.90),pool*.35);
+      float wisp=smoothstep(.55,.7,fbm(vec2(p.x*1.4,p.y*5.)+cloud*1.5));
+      ink=mix(ink,vec3(1.),wisp*.4);
 
+      vec4 col=vec4(0.);
+      col=over(col, vec3(1.), outer*uPaper);
+      // 着地点の影：雫が近づくほど小さく濃くなる
+      vec2 q0=(px-uOrigin)/(14.+40.*(1.-uShadow));
+      col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28*uPaper);
+      col=over(col, ink, band*.94);
       // 着地の波紋
-      float ring=exp(-pow((d-uRipR)/(3.+uRipR*.08),2.));
+      float dp=length(px-uOrigin);
+      float ring=exp(-pow((dp-uRipR)/(3.+uRipR*.08),2.));
       col=over(col, vec3(.55,.78,.96), ring*uRipA);
-
       // 落ちてくる雫：手前ではぼけて大きく、奥へ行くほど小さくくっきり
       vec2 q=(px-uDrop)/max(uDropR,.001);
       float dd=length(q);
@@ -128,7 +133,6 @@
       vec2 c2=q-vec2(.22,.46);
       dc=mix(dc,vec3(1.),clamp(exp(-dot(h,h)*14.)+exp(-dot(c2,c2)*9.)*.45,0.,1.));
       col=over(col, dc, body*uDropA);
-
       gl_FragColor=col;
     }
   `;
@@ -163,9 +167,9 @@
         if (u[name] == null) return;
         v.length === 1 ? gl.uniform1f(u[name], v[0]) : gl.uniform2f(u[name], v[0], v[1]);
       },
-      setv(name, arr) {
+      seti(name, v) {
         if (!(name in u)) u[name] = gl.getUniformLocation(prog, name);
-        if (u[name] != null) gl.uniform1fv(u[name], new Float32Array(arr));
+        if (u[name] != null) gl.uniform1i(u[name], v);
       },
       draw() { gl.drawArrays(gl.TRIANGLES, 0, 3); },
       resize(scale) {
@@ -229,27 +233,73 @@
   }
 
   /* ================= 画面切り替え ================= */
-  // にじみの輪郭。シェーダーと同じ式で、次の画面を切り抜く形（clip-path）も作る
-  const K = [2, 3, 4, 5, 7, 9, 13, 17];
-  const AMP = [0.07, 0.06, 0.05, 0.04, 0.03, 0.025, 0.018, 0.012];
-  const SUM_A = AMP.reduce((a, b) => a + b, 0);
-  function shape() {
-    return {
-      a: AMP.map((v) => v * (Math.random() < 0.5 ? -1 : 1) * (0.7 + Math.random() * 0.3)),
-      ph: K.map(() => Math.random() * Math.PI * 2),
-      sp: K.map((k) => (Math.random() - 0.5) * 0.6 / Math.sqrt(k))
-    };
+  // シェーダーと JS で共通の乱数表（256×256）
+  const LUT = (() => {
+    const t = new Uint8Array(256 * 256);
+    let x = 2463534242;
+    for (let i = 0; i < t.length; i++) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; t[i] = (x >>> 0) & 255; }
+    return t;
+  })();
+  const lutHash = (x, y) => LUT[(((y % 256) + 256) % 256) * 256 + (((x % 256) + 256) % 256)] / 255;
+  function lutNoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = lutHash(xi, yi), b = lutHash(xi + 1, yi), c = lutHash(xi, yi + 1), d = lutHash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a + (d - c - b + a) * u) * v;
   }
-  const radiusAt = (sh, ph, R, th) => {
-    let s = 0;
-    for (let i = 0; i < K.length; i++) s += sh.a[i] * Math.sin(K[i] * th + ph[i]);
-    return R * (1 + s);
-  };
+  function lutFbm(x, y) {
+    let v = 0, a = 0.5;
+    for (let i = 0; i < 5; i++) {
+      v += a * lutNoise(x, y);
+      // GLSL の m*p（mat2(1.6,1.2,-1.2,1.6) は列ごとの指定）
+      const nx = 1.6 * x - 1.2 * y, ny = 1.2 * x + 1.6 * y;
+      x = nx; y = ny; a *= 0.5;
+    }
+    return v;
+  }
 
-  const easeOut = (x) => 1 - Math.pow(1 - x, 1.8);
+  const RAYS = 128;
+  // 画面の中心から放射状に、それぞれの点に「次の画面が見え始める広がり R」を求めておく
+  //  シェーダーの e2 = e1 - .36 - .25n が d を超える条件を R について解いたもの
+  function arrival(ox, oy, vw, vh) {
+    const corners = [[0, 0], [vw, 0], [0, vh], [vw, vh]].map(([x, y]) => Math.hypot(x - ox, y - oy) / vh);
+    const dMax = Math.max(...corners) + 0.04;
+    const step = 0.01, S = Math.ceil(dMax / step) + 1;
+    const T = new Float32Array(RAYS * S);
+    let tMax = 0;
+    for (let k = 0; k < RAYS; k++) {
+      const th = (k / RAYS) * Math.PI * 2 - Math.PI, cx = Math.cos(th), cy = Math.sin(th);
+      for (let j = 0; j < S; j++) {
+        const d = j * step, px = cx * d, py = cy * d;
+        const n = lutFbm(px * 1.25 + 3.1, py * 1.25 + 3.1);
+        const ten = 0.5 + (lutFbm(cx * 2.4 + d * 1.6, cy * 2.4 + d * 1.6) - 0.5) * smooth(0, 0.4, d);
+        const fine = lutFbm(px * 6, py * 6);
+        const g = 0.6 + 0.75 * n + (ten - 0.5) * 0.42 + (fine - 0.5) * 0.08;
+        const t = g > 0.02 ? (d + 0.36 + 0.25 * n) / g : 1e3;
+        T[k * S + j] = t;
+        if (t < 1e3) tMax = Math.max(tMax, t);
+      }
+    }
+    return { T, S, step, dMax, rEnd: tMax + 0.02 };
+  }
+  // 広がり R のとき、各方向で次の画面が途切れずに見えている距離
+  function reach(A, R, out) {
+    for (let k = 0; k < RAYS; k++) {
+      const o = k * A.S;
+      let j = 0;
+      while (j < A.S && A.T[o + j] < R) j++;
+      if (j >= A.S) { out[k] = A.dMax + 0.05; continue; }
+      if (j === 0) { out[k] = 0; continue; }
+      const t0 = A.T[o + j - 1], t1 = A.T[o + j];
+      out[k] = (j - 1 + Math.min(1, Math.max(0, (R - t0) / Math.max(1e-6, t1 - t0)))) * A.step;
+    }
+    return out;
+  }
+
+  const easeOut = (x) => 1 - Math.pow(1 - x, 2.4);
 
   const InkTransition = {
-    canvas: null, g: null,
+    canvas: null, g: null, rcTex: null,
     ensure() {
       if (this.g) return this.g;
       const c = document.createElement('canvas');
@@ -259,35 +309,50 @@
       document.body.appendChild(c);
       this.canvas = c;
       this.g = createGL(c, BLOOM_FRAG);
-      if (!this.g) { c.remove(); this.canvas = null; }
+      if (!this.g) { c.remove(); this.canvas = null; return null; }
+      const gl = this.g.gl;
+      const tex = (unit, w, h, format, data) => {
+        const t = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.texImage2D(gl.TEXTURE_2D, 0, format, w, h, 0, format, gl.UNSIGNED_BYTE, data);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        return t;
+      };
+      tex(0, 256, 256, gl.LUMINANCE, LUT);
+      this.rcTex = tex(1, RAYS, 1, gl.RGBA, new Uint8Array(RAYS * 4));
+      this.g.seti('uLut', 0);
+      this.g.seti('uRc', 1);
+      this.g.set('uRcN', RAYS);
       return this.g;
     },
     // にじみを1回再生する
     //  origin: {x, y}（ビューポートの px） / paper: 外側を白い紙にする / drop: 先に雫を落とす
     //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
-    play({ origin, duration = 1500, paper = false, drop = false, onClip, onImpact, done }) {
+    play({ origin, duration = 1700, paper = false, drop = false, onClip, onImpact, done }) {
       const g = this.ensure();
       if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
-      const c = this.canvas;
+      const gl = g.gl, c = this.canvas;
       c.hidden = false;
       c.classList.toggle('is-cover', paper);
       const vw = window.innerWidth, vh = window.innerHeight;
       const r = g.resize(Math.min(1, 900 / Math.max(vw, 1)) * Math.min(window.devicePixelRatio || 1, 1.5));
-      const unit = Math.min(vw, vh);
-      const maxD = Math.max(...[[0, 0], [vw, 0], [0, vh], [vw, vh]].map(([x, y]) => Math.hypot(x - origin.x, y - origin.y)));
-      const W = Math.min(220, Math.max(70, Math.max(vw, vh) * 0.14));
-      const Rend = (maxD + W + 24) / (1 - SUM_A);
-      const sh = shape();
+      const A = arrival(origin.x, origin.y, r.width, r.height);
+      const rc = new Float32Array(RAYS), bytes = new Uint8Array(RAYS * 4);
+      const rcMax = A.dMax + 0.1;
       g.set('uRes', c.width, c.height);
       g.set('uView', r.width, r.height);
       g.set('uOrigin', origin.x, origin.y);
-      g.set('uW', W);
       g.set('uPaper', paper ? 1 : 0);
-      g.setv('uK', K);
-      g.setv('uA', sh.a);
+      g.set('uRcMax', rcMax);
 
       // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、だんだん速く落ちる
       const DROP = drop ? 950 : 0;
+      const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
       const RIP = 520;
@@ -297,7 +362,6 @@
       if (!drop && onImpact) onImpact();
       const step = (now) => {
         const t = now - t0;
-        // 雫
         if (t < DROP) {
           const x = t / DROP;
           const z = 1 + 27 * Math.pow(x, 2.3);
@@ -311,28 +375,30 @@
           g.set('uShadow', drop ? Math.max(0, 1 - (t - DROP) / 200) : 0);
           if (!impacted) { impacted = true; onImpact && onImpact(); }
         }
-        // 波紋
         const tr = (t - DROP) / RIP;
         g.set('uRipR', drop && tr > 0 ? 6 + 110 * easeOut(Math.min(1, tr)) : 0);
         g.set('uRipA', drop && tr > 0 && tr < 1 ? 0.7 * (1 - tr) : 0);
+
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
-        const R = easeOut(x) * Rend;
-        const tt = t / 1000;
-        const ph = sh.ph.map((p, i) => p + sh.sp[i] * tt);
+        const R = easeOut(x) * A.rEnd;
         g.set('uR', R);
-        g.setv('uPh', ph);
-        g.set('uTime', 30 + tt);
-        g.gl.clearColor(0, 0, 0, 0);
-        g.gl.clear(g.gl.COLOR_BUFFER_BIT);
+        reach(A, R, rc);
+        for (let k = 0; k < RAYS; k++) {
+          const v = Math.round(Math.min(1, rc[k] / rcMax) * 65535);
+          bytes[k * 4] = v >> 8; bytes[k * 4 + 1] = v & 255;
+        }
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.rcTex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, RAYS, 1, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         g.draw();
         if (onClip) {
-          // 境目は輪郭より内側（インクが濃いところ）に置いて、継ぎ目を隠す
           const pts = [];
-          for (let i = 0; i < 120; i++) {
-            const th = (i / 120) * Math.PI * 2 - Math.PI;
-            const rc = Math.max(0, radiusAt(sh, ph, R, th) - 0.3 * W);
-            pts.push(`${(origin.x + Math.cos(th) * rc).toFixed(1)}px ${(origin.y + Math.sin(th) * rc).toFixed(1)}px`);
+          for (let k = 0; k < RAYS; k++) {
+            const th = (k / RAYS) * Math.PI * 2 - Math.PI, d = rc[k] * r.height;
+            pts.push(`${(origin.x + Math.cos(th) * d).toFixed(1)}px ${(origin.y - Math.sin(th) * d).toFixed(1)}px`);
           }
           onClip(`polygon(${pts.join(',')})`);
         }
