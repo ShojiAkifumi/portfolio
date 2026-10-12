@@ -10,31 +10,20 @@
     overflow: hidden;
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: 20px;
-    // 影は他のカード（var(--shadow)）の半分くらいの淡さ
-    box-shadow: 0 15px 30px -18px color-mix(in srgb, var(--deep) 35%, transparent);
-    &.is-open {
-      border-color: var(--sky);
-    }
+    border-radius: var(--radius);
   }
-  // ホバーで少し浮かせる（ふわっと登場の transition は残し、浮き上がりは translate で別に動かす）
+  // 枠・影・ホバーはサービスのカード（.service）と同じ。ふわっと登場の transition も残す
   .js &__item {
     transition:
       opacity 1.4s var(--soft) var(--delay, 0s),
       transform 1.4s var(--soft) var(--delay, 0s),
       filter 1.4s var(--soft) var(--delay, 0s),
-      translate 0.45s var(--ease),
-      box-shadow 0.45s var(--ease),
-      border-color 0.3s var(--ease);
+      border-color 0.5s,
+      box-shadow 0.5s;
   }
-  &__item:not(.is-pending) {
-    @media (hover: hover) {
-      &:has(.faq__q:hover) {
-        border-color: var(--sky);
-        translate: 0 -3px;
-        box-shadow: 0 20px 34px -18px color-mix(in srgb, var(--deep) 42%, transparent);
-      }
-    }
+  &__item:not(.is-pending):has(.faq__q:hover) {
+    border-color: color-mix(in srgb, var(--blue) 40%, var(--line));
+    box-shadow: var(--shadow);
   }
   &__q {
     position: relative;
@@ -87,7 +76,7 @@
     &:focus-visible {
       outline: 2px solid var(--blue);
       outline-offset: -4px;
-      border-radius: 20px;
+      border-radius: var(--radius);
     }
     @include down(sp) {
       padding: 16px 60px 16px 46px;
