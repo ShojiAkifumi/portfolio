@@ -134,7 +134,7 @@
 /* 1列になる幅では、分類ごとに白いカードにして、どこからどこまでが同じ分類か分かるようにする */
 .price-group {
   @include down(price) {
-    padding: 16px 18px 12px;
+    padding: 16px 18px 8px;
     border-radius: calc(var(--radius) * 0.75);
     background: var(--paper);
     border: 1px solid color-mix(in srgb, var(--sky) 60%, var(--line));
