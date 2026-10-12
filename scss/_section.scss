@@ -7,10 +7,6 @@
   &--mist {
     background: var(--mist);
   }
-  // ごく淡い灰色（となりの mist のセクションと分けたい時に）
-  &--gray {
-    background: color-mix(in srgb, var(--gray) 12%, var(--paper));
-  }
 }
 .section-head {
   display: grid;

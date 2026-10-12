@@ -47,29 +47,23 @@
       font-size: 1.2rem;
       color: var(--blue);
     }
-    // 右端の「＋」ボタン（開くと × に回る）
+    // 右端の「＋」ボタン（横棒と縦棒の2本の線。開くと縦棒が縮んで「−」になる）
     &::after {
-      content: "+";
+      content: "";
       position: absolute;
       top: 50%;
       right: 22px;
-      display: grid;
-      place-items: center;
       width: 34px;
       height: 34px;
       border-radius: 50%;
       border: 1px solid var(--line);
-      font-family: var(--font-en);
-      font-size: 1.35rem;
-      font-weight: 500;
-      line-height: 1;
-      color: var(--blue);
+      background:
+        linear-gradient(var(--blue), var(--blue)) center / 12px 2px no-repeat,
+        linear-gradient(var(--blue), var(--blue)) center / 2px 12px no-repeat;
       transform: translateY(-50%);
       transition:
         transform 0.45s var(--soft),
-        background-color 0.3s var(--ease),
-        border-color 0.3s var(--ease),
-        color 0.3s var(--ease);
+        background-size 0.45s var(--soft);
     }
     &:focus-visible {
       outline: 2px solid var(--blue);
@@ -90,7 +84,10 @@
     }
   }
   &__item.is-open &__q::after {
-    transform: translateY(-50%) rotate(135deg);
+    transform: translateY(-50%) rotate(180deg);
+    background-size:
+      12px 2px,
+      2px 0;
   }
   &__a {
     position: relative;
