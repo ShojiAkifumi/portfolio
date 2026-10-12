@@ -124,9 +124,9 @@
     };
 
     // 縦（PC）の半円。正面を原点に、右側に中心がある円の上に並べる
-    const arcPos = (p, cw, R) => {
+    let KX = 1;
+    const arcPos = (p, cw, R, kx = KX) => {
       const th = (p * (compact.matches ? 22 : 24) * Math.PI) / 180;
-      const kx = compact.matches ? 0.5 : 1;
       const s = 1 / (1 + 0.68 * Math.abs(p));
       const w = cw * s;
       // 正面のすぐ後ろ（1番目・2番目）は40pxほど右へずらす
@@ -142,7 +142,35 @@
       cw = 0,
       R = 0,
       fx = 0;
+    // タブレット〜小さめPCでは、左の文字の右端のすぐ横からスライダーを始める（間が空きすぎないように）
+    const hero = root.closest(".hero");
+    const profile = hero && hero.querySelector(".hero__profile");
+    function fitShowcase() {
+      if (!hero) return;
+      if (narrow.matches || !compact.matches || !profile) {
+        hero.style.removeProperty("--showcase-left");
+        return;
+      }
+      const vw = hero.clientWidth;
+      // 文字・ボタンなど実際に見えている中身の右端を測る
+      let right = 0;
+      const range = document.createRange();
+      const walk = document.createTreeWalker(profile, NodeFilter.SHOW_TEXT);
+      while (walk.nextNode()) {
+        if (!walk.currentNode.nodeValue.trim()) continue;
+        range.selectNodeContents(walk.currentNode);
+        for (const r of range.getClientRects()) right = Math.max(right, r.right);
+      }
+      profile.querySelectorAll(".btn, .hero__tags li").forEach((el) => {
+        right = Math.max(right, el.getBoundingClientRect().right);
+      });
+      const gap = Math.max(16, vw * 0.025);
+      const left = Math.min(Math.max(right + gap, vw * 0.36), vw * 0.56);
+      hero.style.setProperty("--showcase-left", Math.round(left) + "px");
+    }
+
     function measure() {
+      fitShowcase();
       W = stage.clientWidth;
       H = stage.clientHeight;
       mode = narrow.matches ? "h" : "v";
@@ -150,20 +178,34 @@
         // 画面の幅・高さに収まるように全体を縮める（見切れ防止）
         const cw0 = H * 0.62,
           R0 = H * 0.56;
-        let l = 0,
-          r = 0,
-          t = 0,
-          b = 0;
-        for (let p = -3; p <= 3; p += 0.25) {
-          const g = arcPos(p, cw0, R0);
-          l = Math.min(l, g.x - g.w / 2);
-          r = Math.max(r, g.x + g.w / 2);
-          if (Math.abs(p) <= (compact.matches ? 3 : 1.5)) {
-            t = Math.min(t, g.y - g.h / 2);
-            b = Math.max(b, g.y + g.h / 2);
+        const bounds = (kx) => {
+          let l = 0,
+            r = 0,
+            t = 0,
+            b = 0;
+          for (let p = -3; p <= 3; p += 0.25) {
+            const g = arcPos(p, cw0, R0, kx);
+            l = Math.min(l, g.x - g.w / 2);
+            r = Math.max(r, g.x + g.w / 2);
+            if (Math.abs(p) <= (compact.matches ? 3 : 1.5)) {
+              t = Math.min(t, g.y - g.h / 2);
+              b = Math.max(b, g.y + g.h / 2);
+            }
+          }
+          return { l, r, t, b, f: Math.min(1, (W - 24) / (r - l), H / (b - t)) };
+        };
+        // 1200px以下は、高さいっぱいの大きさを保てる範囲で半円の横の膨らみを広げる（細い画面ほど細い弧に）
+        KX = compact.matches ? 0.35 : 1;
+        let bd = bounds(KX);
+        if (compact.matches) {
+          for (let kx = 0.4; kx <= 1.0001; kx += 0.05) {
+            const n = bounds(kx);
+            if (n.f < bd.f - 0.001) break;
+            KX = kx;
+            bd = n;
           }
         }
-        const f = Math.min(1, (W - 24) / (r - l), H / (b - t));
+        const { l, r, f } = bd;
         cw = cw0 * f * 0.9; // 正面の実績は収まるサイズより1割小さく
         R = R0 * f;
         // 一番右の実績が画面の右端に収まる位置に正面を置く
@@ -332,6 +374,11 @@
 
     measure();
     layout();
+    // 文字の幅はWebフォントの読み込みで変わるので、読み込み後に測り直す
+    if (document.fonts) document.fonts.ready.then(() => {
+      measure();
+      layout();
+    });
     updateLabel();
     run();
     if (!reduce) tick();

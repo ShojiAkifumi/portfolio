@@ -506,7 +506,7 @@ html:not(.ink-masks) .ink-edge {
   z-index: 2;
   top: var(--header-h);
   bottom: 0;
-  left: 50%;
+  left: var(--showcase-left, 50%);
   right: 0;
 }
 .hero__catch {
@@ -2098,7 +2098,7 @@ select.input {
     max-width: 50%;
   }
   .hero__showcase {
-    left: 52%;
+    left: var(--showcase-left, 52%);
   }
   .hero__tags li {
     font-size: 0.72rem;
