@@ -58,7 +58,7 @@
   // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
   //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
   //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
-  //  - 最初の読み込みでは、外側を白い紙にし（uPaper=1）、手前から落ちてくる雫も描く
+  //  - 最初の読み込みでは、にじみは出さずに（uInk=0）白い紙（uPaper）を消していき、トップでは先に手前から雫を落とす
   const BLOOM_FRAG = `
     precision highp float;
     uniform vec2 uRes;
@@ -66,6 +66,7 @@
     uniform vec2 uOrigin;
     uniform float uR;
     uniform float uPaper;
+    uniform float uInk;
     uniform sampler2D uLut;
     uniform sampler2D uRc;
     uniform float uRcN;
@@ -116,7 +117,7 @@
       ink=mix(ink,vec3(1.),wisp*.4);
       // 全体を少し淡く
       ink=mix(ink,vec3(1.),.12);
-      band*=(1.-rim*.55)*.84;
+      band*=(1.-rim*.55)*.84*uInk;
 
       vec4 col=vec4(0.);
       col=over(col, vec3(1.), outer*uPaper);
@@ -130,6 +131,8 @@
         vec2 tuv=q*.37+.5;
         if(uDropA>0.&&tuv.x>0.&&tuv.x<1.&&tuv.y>0.&&tuv.y<1.){
           vec4 t=texture2D(uDropTex,tuv,uDropSoft*7.);
+          // 色の鮮やかさを少し落とす
+          t.rgb=mix(t.rgb,vec3(dot(t.rgb,vec3(.299,.587,.114))),.35);
           col=vec4(t.rgb*uDropA+col.rgb*(1.-t.a*uDropA), t.a*uDropA+col.a*(1.-t.a*uDropA));
         }
       }else{
@@ -367,6 +370,7 @@
     //  origin: {x, y}（ビューポートの px） / paper: 外側を白い紙にする / drop: 先に雫を落とす
     //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
     play({ origin, duration = 1700, paper = false, drop = false, onClip, onImpact, done }) {
+      // paper: true のときは、にじみを広げず白い紙をふわっと消して現す
       const g = this.ensure();
       if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
       const gl = g.gl, c = this.canvas;
@@ -381,10 +385,11 @@
       g.set('uView', r.width, r.height);
       g.set('uOrigin', origin.x, origin.y);
       g.set('uPaper', paper ? 1 : 0);
+      g.set('uInk', paper ? 0 : 1);
       g.set('uRcMax', rcMax);
 
-      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.2秒でだんだん速く落ちる
-      const DROP = drop ? 200 : 0;
+      // 雫：奥行き z が 1（目の前）から 28（紙の上）まで、0.12秒でだんだん速く落ちる
+      const DROP = drop ? 120 : 0;
       const unit = Math.min(vw, vh);
       const R0 = Math.min(420, Math.max(170, unit * 0.46));
       const off = { x: -vw * 0.16, y: vh * 0.34 };
@@ -410,6 +415,7 @@
 
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
+        if (paper) g.set('uPaper', 1 - x * x * (3 - 2 * x));
         const R = easeOut(x) * A.rEnd;
         g.set('uR', R);
         reach(A, R, rc);
