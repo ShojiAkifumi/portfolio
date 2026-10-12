@@ -12,18 +12,16 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
   }
-  // 枠・影・ホバーはサービスのカード（.service）と同じ。ふわっと登場の transition も残す
+  // 枠とホバー時の枠の色はサービスのカード（.service）と同じ（影はなし）。ふわっと登場の transition も残す
   .js &__item {
     transition:
       opacity 1.4s var(--soft) var(--delay, 0s),
       transform 1.4s var(--soft) var(--delay, 0s),
       filter 1.4s var(--soft) var(--delay, 0s),
-      border-color 0.5s,
-      box-shadow 0.5s;
+      border-color 0.5s;
   }
   &__item:not(.is-pending):has(.faq__q:hover) {
     border-color: color-mix(in srgb, var(--blue) 40%, var(--line));
-    box-shadow: var(--shadow);
   }
   &__q {
     position: relative;
