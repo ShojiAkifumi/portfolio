@@ -1,0 +1,198 @@
+@use "mixins" as *;
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(36px, 6vw, 96px);
+  align-items: start;
+  &__visual {
+    position: relative;
+    &::before {
+      /* 写真の後ろの淡いインクのしみ */
+      content: "";
+      position: absolute;
+      left: -14%;
+      bottom: -12%;
+      width: 78%;
+      aspect-ratio: 1;
+      z-index: 0;
+      background: radial-gradient(closest-side, var(--sky), color-mix(in srgb, var(--gray) 35%, var(--sky)));
+      opacity: 0.8;
+      border-radius: 50%;
+    }
+    @include down(tab) {
+      max-width: 400px;
+      margin-inline: auto;
+      width: 100%;
+    }
+  }
+  .ink-masks &__visual::before {
+    border-radius: 0;
+    -webkit-mask: var(--ink-blot) center / contain no-repeat;
+    mask: var(--ink-blot) center / contain no-repeat;
+  }
+  &__visual::after {
+    content: "";
+    position: absolute;
+    right: -8%;
+    top: -6%;
+    width: 34%;
+    aspect-ratio: 1;
+    z-index: 0;
+    background: color-mix(in srgb, var(--gray) 40%, transparent);
+    opacity: 0.5;
+    border-radius: 50%;
+    transform: rotate(140deg);
+  }
+  .ink-masks &__visual::after {
+    border-radius: 0;
+    -webkit-mask: var(--ink-blot) center / contain no-repeat;
+    mask: var(--ink-blot) center / contain no-repeat;
+  }
+  &__photo {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 4 / 5;
+    img {
+      /* 枠が液体のようにゆっくり揺れ続ける */
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: var(--mist);
+      border-radius: 48% 52% 46% 54% / 38% 40% 60% 62%;
+      animation: liquidFrame 14s ease-in-out infinite;
+    }
+  }
+  &__name {
+    font-family: var(--font-head);
+    font-size: var(--step-3);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+  }
+  &__name-en {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.24em;
+    color: var(--gray);
+    margin-top: 6px;
+  }
+  &__role {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    .chip {
+      font-family: var(--font-body);
+    }
+  }
+  &__bio {
+    margin-top: 28px;
+    max-width: 36em;
+    p + p {
+      margin-top: 1em;
+    }
+  }
+  &__block {
+    margin-top: 40px;
+    display: grid;
+    gap: 16px;
+  }
+  &__label {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.76rem;
+    letter-spacing: 0.2em;
+    color: var(--gray);
+  }
+  &__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    @include down(sp) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  &__link {
+    margin-top: 36px;
+  }
+  @include down(tab) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@keyframes liquidFrame {
+  0%,
+  100% {
+    border-radius: 48% 52% 46% 54% / 38% 40% 60% 62%;
+  }
+  20% {
+    border-radius: 56% 44% 52% 48% / 44% 34% 66% 56%;
+  }
+  40% {
+    border-radius: 42% 58% 40% 60% / 34% 46% 54% 66%;
+  }
+  60% {
+    border-radius: 54% 46% 58% 42% / 42% 38% 62% 58%;
+  }
+  80% {
+    border-radius: 44% 56% 48% 52% / 36% 44% 56% 64%;
+  }
+}
+.timeline {
+  display: grid;
+  border-left: 1px solid var(--line);
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 5em minmax(0, 1fr);
+    gap: 16px;
+    padding: 10px 0 10px 24px;
+    &::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 21px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+    @include down(sp) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+  time {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gray);
+    font-variant-numeric: tabular-nums;
+  }
+}
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  li {
+    padding: 5px 16px;
+    border-radius: 999px;
+    background: var(--mist);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+}
+.fact {
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  dt {
+    font-size: 0.78rem;
+    color: var(--gray);
+  }
+  dd {
+    font-weight: 700;
+    margin-top: 4px;
+  }
+}

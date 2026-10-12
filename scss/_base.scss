@@ -1,0 +1,124 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+/* Layout concept: 白い紙に、淡い青と灰色のインクがふわっとにじむ。
+   画面の切り替えもコンテンツの登場も「インクが広がる」動きでつなぐ。ピンクはCTAボタンだけ。 */
+:root {
+  --ink: #{$ink}; /* 本文・見出し（やわらかい紺） */
+  --ink-soft: #{$ink-soft}; /* 補足テキスト */
+  --gray: #{$gray}; /* 英字ラベル・罫線・灰色のインク */
+  --deep: #{$deep}; /* 強調の青 */
+  --blue: #{$blue}; /* 明るい青 */
+  --sky: #{$sky}; /* 淡い空色（にじみ） */
+  --mist: #{$mist}; /* 淡い背景 */
+  --paper: #{$paper}; /* 地の白 */
+  --line: #{$line}; /* 罫線 */
+  --pink: #{$pink}; /* CTAボタン専用 */
+
+  --font-en: "Quicksand", "Zen Maru Gothic", system-ui, sans-serif;
+  --font-head: "Zen Maru Gothic", "Zen Kaku Gothic New", "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
+  --step-0: clamp(0.95rem, 0.92rem + 0.15vw, 1.03rem);
+  --step-1: clamp(1.12rem, 1.06rem + 0.3vw, 1.3rem);
+  --step-2: clamp(1.4rem, 1.22rem + 0.8vw, 1.85rem);
+  --step-3: clamp(1.8rem, 1.45rem + 1.7vw, 2.8rem);
+  --step-4: clamp(2.6rem, 1.6rem + 4.6vw, 6rem);
+
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1200px;
+  --radius: 24px;
+  --header-h: 76px;
+  --ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+  --soft: cubic-bezier(0.33, 0.1, 0.2, 1);
+  --shadow: 0 30px 60px -36px #{rgba($deep, 0.35)};
+
+  color-scheme: light;
+  @include down(nav) {
+    --header-h: 66px;
+  }
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+  @include reduced-motion {
+    scroll-behavior: auto;
+  }
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 2;
+  letter-spacing: 0.04em;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+a {
+  color: inherit;
+}
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.45;
+  text-wrap: balance;
+  font-family: var(--font-head);
+  font-weight: 700;
+}
+p {
+  margin: 0;
+}
+ul,
+ol,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.wrap {
+  width: 100%;
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.d-inline-block {
+  display: inline-block;
+}
+@include reduced-motion {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+}

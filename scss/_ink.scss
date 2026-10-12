@@ -1,0 +1,48 @@
+@use "mixins" as *;
+
+.ink-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  &.is-fallback {
+    background:
+      radial-gradient(40% 50% at 78% 45%, var(--sky), transparent 70%),
+      radial-gradient(30% 40% at 90% 75%, color-mix(in srgb, var(--gray) 35%, transparent), transparent 70%);
+  }
+}
+.ink-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50% 45% 55% 50%;
+  background: radial-gradient(circle at 35% 35%, var(--sky), var(--blue));
+  flex: none;
+}
+/* セクション境界の、筆でなでたようなインクのふち */
+.ink-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  pointer-events: none;
+  background: var(--edge-color, var(--mist));
+  .ink-masks & {
+    -webkit-mask: var(--ink-edge) center / 100% 100% no-repeat;
+    mask: var(--ink-edge) center / 100% 100% no-repeat;
+  }
+  &--top {
+    bottom: 100%;
+  }
+  &--bottom {
+    top: 100%;
+    transform: scale(-1, -1);
+  }
+  @include down(sp) {
+    height: 70px;
+  }
+}
+html:not(.ink-masks) .ink-edge {
+  display: none;
+}

@@ -1,0 +1,39 @@
+@use "mixins" as *;
+
+.strength-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+  @include down(tab) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.strength {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: clamp(28px, 3vw, 40px);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
+  box-shadow: var(--shadow);
+  &__key {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.74rem;
+    letter-spacing: 0.18em;
+    color: var(--gray);
+  }
+  &__icon {
+    width: 60px;
+    height: 60px;
+  }
+  &__title {
+    font-size: var(--step-2);
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  &__text {
+    color: var(--ink-soft);
+  }
+}

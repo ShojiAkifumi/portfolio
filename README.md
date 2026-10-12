@@ -1,8 +1,8 @@
 # ショウジアキフミ ポートフォリオサイト
 
 バナー・LP制作の実績を掲載し、お問い合わせにつなげるポートフォリオサイトです。
-HTML / CSS / TypeScript で作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
-公開用のファイルは `npm run build` で圧縮して `dist/` に書き出します（JS・CSS・HTML の圧縮、ファイル名にハッシュを付けた長期キャッシュ）。
+HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面を切り替える形）です。Cloudflare Pages で公開します。
+公開用のファイルは `npm run build` で圧縮して `dist/` に書き出します（SCSS の変換、JS・CSS・HTML の圧縮、ファイル名にハッシュを付けた長期キャッシュ）。
 
 - URL は `/`（トップ）、`/works`（実績一覧）、`/works/実績ID`（実績詳細）です。以前の `works.html`・`work.html?id=` で開いた場合も、新しいURLに切り替わります。
 - どのURLで開いても `index.html` を返す設定が必要です。Cloudflare Pages はルートに `404.html` がなければ自動でそうなります（`404.html` は置かないでください）。手元では `npm run dev` で同じ動きになります。
@@ -22,10 +22,13 @@ HTML / CSS / TypeScript で作ったSPA（1つの `index.html` の中で画面�
 | `images/works/実績ID/` | 実績ごとの画像 |
 | `src/config.ts` | フォームの送信先、SNSの表示、表示件数の設定 |
 | `src/ink.ts` | インクのにじみ・最初の雫・画面切り替えの演出（WebGL） |
-| `css/style.css` | デザイン（ビルド時に圧縮されます） |
+| `scss/style.scss` | デザインの入口。下のファイルを順に読み込みます |
+| `scss/_variables.scss` | 配色とブレークポイント（画面幅の区切り） |
+| `scss/_mixins.scss` | メディアクエリの書き方（`@include down(sp)` で640px以下など） |
+| `scss/_base.scss` ほか | セクションごとのデザイン（`_hero`・`_works`・`_contact` など） |
 | `tools/build.mjs` | ビルドと、手元確認用のサーバー |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
-| `js/app.js`・`dist/` | ビルドで自動的に作られるファイル（直接編集しないでください。Git にも入りません） |
+| `js/app.js`・`css/style.css`・`dist/` | ビルドで自動的に作られるファイル（直接編集しないでください。Git にも入りません） |
 
 ## 実績を追加する
 
@@ -99,7 +102,7 @@ GitHub のサイト上で `data/works.json` を開き、鉛筆ボタンから直
 初回だけ `npm install` を実行してから、次のコマンドで確認用のサーバーを起動します。
 
 ```bash
-npm run dev       # → http://localhost:8080（src/ や css/ を保存すると、再読み込みで反映されます）
+npm run dev       # → http://localhost:8080（src/ や scss/ を保存すると、再読み込みで反映されます）
 ```
 
 公開されるものと同じ圧縮済みのファイルで確認したい時は、次の2つを実行します。

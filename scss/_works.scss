@@ -1,0 +1,172 @@
+@use "variables" as *;
+
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  button {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 999px;
+    padding: 7px 18px;
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition:
+      background 0.4s,
+      color 0.4s,
+      border-color 0.4s;
+    &:hover {
+      border-color: var(--blue);
+      color: var(--deep);
+    }
+    &[aria-pressed="true"] {
+      background: var(--deep);
+      border-color: var(--deep);
+      color: var(--paper);
+    }
+    .count {
+      opacity: 0.6;
+      margin-left: 6px;
+    }
+  }
+}
+.works-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: clamp(36px, 4vw, 56px) clamp(20px, 2.6vw, 36px);
+}
+.work-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  text-decoration: none;
+  min-width: 0;
+  &__visual {
+    position: relative;
+    aspect-ratio: 16 / 11;
+    border-radius: var(--radius);
+    overflow: hidden;
+    isolation: isolate;
+    background: linear-gradient(160deg, var(--mist), #e4f1fb);
+    display: grid;
+    place-items: center;
+    &::before {
+      /* ホバーで広がる淡いインクのしみ */
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      width: 90%;
+      aspect-ratio: 1;
+      z-index: -1;
+      background: radial-gradient(
+        closest-side,
+        var(--sky),
+        color-mix(in srgb, var(--blue) 25%, var(--sky)) 60%,
+        color-mix(in srgb, var(--gray) 30%, transparent)
+      );
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4) rotate(-20deg);
+      transition:
+        opacity 0.9s var(--soft),
+        transform 1.2s var(--soft);
+    }
+  }
+  .ink-masks &__visual::before {
+    -webkit-mask: var(--ink-blot) center / contain no-repeat;
+    mask: var(--ink-blot) center / contain no-repeat;
+  }
+  &:hover .work-card__visual::before {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.15) rotate(0);
+  }
+  /* 画像は切らずに枠の中央に収める（縦が長い画像は上下の余白が同じになるよう高さで合わせる） */
+  &__visual img {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: auto;
+    height: auto;
+    max-width: 92%;
+    max-height: 88%;
+    transition: transform 1.2s var(--soft);
+  }
+  &__visual--banner img {
+    max-width: 84%;
+    max-height: 82%;
+    border-radius: 8px;
+    box-shadow: 0 24px 40px -22px rgba($ink, 0.45);
+  }
+  &:hover .work-card__visual img {
+    transform: translateY(-6px) scale(1.03);
+  }
+  &__meta {
+    display: grid;
+    gap: 8px;
+  }
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.74rem;
+    color: var(--gray);
+    letter-spacing: 0.08em;
+  }
+  &__title {
+    font-size: var(--step-1);
+    line-height: 1.6;
+  }
+  &__summary {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    line-height: 1.85;
+  }
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sky) 55%, var(--paper));
+  color: var(--deep);
+  font-family: var(--font-en);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+  &--banner {
+    background: color-mix(in srgb, var(--gray) 22%, var(--paper));
+    color: var(--ink-soft);
+  }
+  &--line {
+    background: transparent;
+    color: var(--ink-soft);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-family: var(--font-body);
+    font-weight: 500;
+  }
+  &--client {
+    background: transparent;
+    color: var(--deep);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--deep) 50%, transparent);
+    font-family: var(--font-body);
+  }
+}
+.works-more {
+  margin-top: clamp(52px, 6vw, 80px);
+  display: flex;
+  justify-content: center;
+}
+.works-empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}

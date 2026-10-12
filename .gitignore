@@ -5,3 +5,4 @@ server.bat
 dist/
 js/app.js
 js/app.js.map
+css/style.css

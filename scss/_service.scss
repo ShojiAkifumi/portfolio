@@ -1,0 +1,203 @@
+@use "mixins" as *;
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 20px);
+  @include down(tab) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @include between(sp, tab) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .service {
+    @include between(sp, tab) {
+      padding: 20px;
+    }
+  }
+}
+.service {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 12px;
+  padding: clamp(24px, 3vw, 34px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.5s,
+    box-shadow 0.5s;
+  &:hover {
+    border-color: color-mix(in srgb, var(--blue) 40%, var(--line));
+    box-shadow: var(--shadow);
+  }
+  &--featured {
+    background: linear-gradient(160deg, var(--paper), var(--mist));
+    border-color: color-mix(in srgb, var(--blue) 35%, var(--line));
+  }
+  &__badge {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    padding: 1px 12px;
+    border-radius: 999px;
+    background: var(--deep);
+    color: var(--paper);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+  &__en {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    color: var(--gray);
+  }
+  &__title {
+    font-size: var(--step-1);
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  &__sub {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  &__text {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+  &__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+    strong {
+      font-family: var(--font-en);
+      font-size: var(--step-2);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+    strong small {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+    span {
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+  }
+}
+/* メイン以外のサービス：分類ごとの料金リスト */
+.price-list {
+  margin-top: clamp(28px, 3.4vw, 44px);
+  padding: clamp(22px, 3vw, 36px);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--mist) 70%, var(--paper));
+  &__head {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: var(--step-1);
+    margin: 0 0 clamp(14px, 2vw, 22px);
+  }
+  &__cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 44px);
+    @include down(price) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  &__notes {
+    margin: clamp(16px, 2vw, 22px) 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+}
+.price-group__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  margin: 0 0 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--sky);
+}
+.price-group__title span {
+  font-family: var(--font-en);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--blue);
+}
+.price-group__list {
+  margin: 0;
+}
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--line);
+  &:last-child {
+    border-bottom: 0;
+  }
+  dt {
+    min-width: 0;
+    font-weight: 700;
+    font-size: 0.92rem;
+    small {
+      display: block;
+      margin-top: 2px;
+      font-weight: 400;
+      font-size: 0.74rem;
+      color: var(--ink-soft);
+    }
+  }
+  dd {
+    margin: 0;
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    small {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      margin-inline: 1px;
+    }
+  }
+}
+.free-badge {
+  position: relative;
+  overflow: hidden;
+  margin-top: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(28px, 3vw, 36px) clamp(24px, 4vw, 48px);
+  border-radius: var(--radius);
+  background: linear-gradient(110deg, var(--mist), color-mix(in srgb, var(--sky) 70%, var(--paper)));
+  p {
+    position: relative;
+    font-family: var(--font-head);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+}

@@ -1,0 +1,38 @@
+/* JS が動く時だけ、最初は白い紙で覆う（3秒で必ず消える保険つき） */
+.is-covered body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  background: var(--paper);
+  animation: coverSafety 0.6s 3s forwards;
+}
+@keyframes coverSafety {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.ink-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 45; /* 次の画面の上、ヘッダーの下 */
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* 最初の読み込みは、ヘッダーも含めて白い紙で覆ってから現す */
+  &.is-cover {
+    z-index: 131;
+  }
+  .is-leaving & {
+    pointer-events: auto;
+  }
+}
+/* 切り替え中の次の画面：今の画面の上に重ね、にじみの形で切り抜いて見せる */
+.view--next {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  background: var(--paper);
+}

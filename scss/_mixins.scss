@@ -1,0 +1,31 @@
+// よく使うメディアクエリ
+@use "sass:map";
+@use "variables" as *;
+
+// 指定した幅以下
+@mixin down($bp) {
+  @media (max-width: map.get($breakpoints, $bp)) {
+    @content;
+  }
+}
+
+// $from より広く、$to 以下
+@mixin between($from, $to) {
+  @media (min-width: map.get($breakpoints, $from) + 1) and (max-width: map.get($breakpoints, $to)) {
+    @content;
+  }
+}
+
+// タッチ操作の端末（マウスのホバーがない）
+@mixin touch {
+  @media (hover: none), (pointer: coarse) {
+    @content;
+  }
+}
+
+// 「視差効果を減らす」設定の時
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

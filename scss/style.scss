@@ -1,0 +1,20 @@
+// サイト全体のスタイル（npm run dev / npm run build で css/style.css に変換されます）
+//  - 色やブレークポイントは _variables.scss、メディアクエリは _mixins.scss
+//  - そのほかは、ページの上から順にセクションごとのファイルに分けています
+
+@use "base";
+@use "transition";
+@use "header";
+@use "buttons";
+@use "ink";
+@use "hero";
+@use "section";
+@use "works";
+@use "strength";
+@use "service";
+@use "flow";
+@use "about";
+@use "contact";
+@use "footer";
+@use "page";
+@use "cursor";

@@ -1,0 +1,497 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.hero {
+  position: relative;
+  min-height: min(100svh, 940px);
+  display: grid;
+  align-items: center;
+  padding-block: calc(var(--header-h) + 40px) 120px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f3f9fe 0%, var(--paper) 70%);
+  &__inner {
+    position: static;
+    display: block;
+    @include down(tab) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    @include down(sp) {
+      gap: 28px;
+    }
+  }
+  &__profile {
+    position: relative;
+    z-index: 3;
+    max-width: min(46%, 560px);
+    @include down(tab) {
+      max-width: 50%;
+    }
+    @include down(sp) {
+      max-width: none;
+    }
+  }
+  &__eyebrow {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: var(--step--1);
+    letter-spacing: 0.3em;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  &__name {
+    margin-top: 18px;
+    display: grid;
+    gap: 14px;
+    @include down(sp) {
+      margin-top: 10px;
+      gap: 6px;
+    }
+  }
+  &__name-ja {
+    font-size: clamp(2.4rem, 1.5rem + 3.2vw, 4.6rem);
+    line-height: 1.1;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    @include down(sp) {
+      font-size: 2.2rem;
+    }
+  }
+  &__name-en {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1.2rem);
+    letter-spacing: 0.42em;
+    color: var(--gray);
+    @include down(sp) {
+      font-size: 0.8rem;
+    }
+  }
+  &__role {
+    margin-top: 26px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: var(--step-1);
+    letter-spacing: 0.1em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.3em;
+    span {
+      color: var(--gray);
+      font-weight: 500;
+    }
+    @include down(sp) {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+    }
+  }
+  &__cta {
+    margin-top: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    @include down(sp) {
+      margin-top: 20px;
+      gap: 10px;
+    }
+  }
+  &__tags {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    li {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      padding: 2px 14px;
+      border: 1px solid color-mix(in srgb, var(--gray) 55%, transparent);
+      color: var(--ink-soft);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--paper) 70%, transparent);
+      backdrop-filter: blur(6px);
+      @include down(tab) {
+        font-size: 0.72rem;
+        padding: 2px 10px;
+      }
+    }
+    @include down(sp) {
+      display: none;
+    }
+  }
+  /* ファーストビューの実績スライダー（PCは右端の半円、タブレット以下は横） */
+  &__showcase {
+    position: absolute;
+    z-index: 2;
+    top: var(--header-h);
+    bottom: 0;
+    left: var(--showcase-left, 50%);
+    right: 0;
+    @include down(tab) {
+      left: var(--showcase-left, 52%);
+    }
+    @include down(sp) {
+      position: relative;
+      inset: auto;
+      margin-top: 26px;
+    }
+  }
+  &__catch {
+    margin-top: 20px;
+    font-family: var(--font-head);
+    font-weight: 500;
+    font-size: clamp(0.95rem, 0.78rem + 0.45vw, 1.25rem);
+    line-height: 1.9;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    padding-left: 16px;
+    border-left: 2px solid var(--sky);
+    @include down(sp) {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      line-height: 1.75;
+      letter-spacing: 0.06em;
+    }
+  }
+  /* ヒーローの登場（JS が body に .is-ready を付ける） */
+  .js &__catch.hero__fade {
+    transition-delay: 0.17s;
+  }
+  .js &__name > span,
+  .js &__fade {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(12px);
+    transition:
+      opacity 1.6s var(--soft),
+      transform 1.6s var(--soft),
+      filter 1.6s var(--soft);
+  }
+  .js &__eyebrow.hero__fade {
+    transition-delay: 0.1s;
+  }
+  .js &__name-ja {
+    transition-delay: 0.32s !important;
+  }
+  .js &__name-en {
+    transition-delay: 0.37s !important;
+  }
+  .js &__role.hero__fade {
+    transition-delay: 0.4s;
+  }
+  .js &__tags.hero__fade {
+    transition-delay: 0.43s;
+  }
+  .js &__cta.hero__fade {
+    transition-delay: 0.47s;
+  }
+  @include down(sp) {
+    padding-block: calc(var(--header-h) + 20px) 120px;
+    min-height: 0;
+  }
+  &__cta .btn {
+    @include down(sp) {
+      min-height: 46px;
+      padding: 0 20px;
+      font-size: 0.85rem;
+    }
+  }
+}
+/* 縦方向のスクロール案内 */
+.scroll-cue {
+  position: absolute;
+  z-index: 2;
+  left: var(--gutter);
+  bottom: 20px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--gray);
+  &__text {
+    font-family: var(--font-en);
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.32em;
+    writing-mode: vertical-rl;
+  }
+  &__line {
+    position: relative;
+    width: 1px;
+    height: 72px;
+    background: color-mix(in srgb, var(--gray) 45%, transparent);
+    overflow: hidden;
+    &::after {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: -12px;
+      width: 5px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--blue);
+      animation: scrollDrop 2.4s var(--soft) infinite;
+    }
+    @include down(sp) {
+      height: 44px;
+    }
+  }
+  @include down(sp) {
+    left: auto;
+    right: var(--gutter);
+    bottom: 14px;
+  }
+}
+@keyframes scrollDrop {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(84px);
+    opacity: 0;
+  }
+}
+.arc {
+  position: absolute;
+  inset: 0;
+  &__stage {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    @include between(sp, pc) {
+      -webkit-mask-image: linear-gradient(180deg, transparent, #000 3%, #000 97%, transparent);
+      mask-image: linear-gradient(180deg, transparent, #000 3%, #000 97%, transparent);
+    }
+    @include down(sp) {
+      position: relative;
+      inset: auto;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      height: clamp(200px, 46vw, 380px);
+    }
+  }
+  &:not(.is-built) .arc-item {
+    visibility: hidden;
+  }
+  &__label {
+    position: absolute;
+    z-index: 120;
+    left: var(--front-l, 0px);
+    top: calc(var(--front-b, 70%) + 10px);
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    max-width: 300px;
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    @include down(sp) {
+      position: static;
+      max-width: none;
+      margin-top: 8px;
+      padding: 0 var(--gutter);
+      justify-content: center;
+      text-align: center;
+    }
+  }
+  &__tag {
+    font-family: var(--font-en);
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    color: var(--gray);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    small {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+    }
+  }
+  &__count {
+    font-family: var(--font-en);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--blue);
+  }
+  &__title {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    @include down(sp) {
+      max-width: 100%;
+    }
+  }
+  &__all {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--deep);
+    background: color-mix(in srgb, var(--paper) 85%, transparent);
+    backdrop-filter: blur(6px);
+    color: var(--deep);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.86rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background 0.4s var(--soft),
+      color 0.4s var(--soft);
+    svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.4s var(--soft);
+    }
+    &:hover {
+      background: var(--deep);
+      color: #fff;
+    }
+    &:hover svg {
+      transform: translateX(4px);
+    }
+  }
+  .js &__label.hero__fade {
+    transition-delay: 0.5s;
+  }
+  @include down(sp) {
+    position: relative;
+    inset: auto;
+    margin-inline: calc(var(--gutter) * -1);
+  }
+}
+.arc-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--card-w, 300px);
+  aspect-ratio: 4 / 3;
+  display: block;
+  text-decoration: none;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  -webkit-tap-highlight-color: transparent;
+  &__in {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 7%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.9) 0%, rgba(214, 233, 250, 0.28) 100%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow:
+      0 30px 50px -34px rgba($ink, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition:
+      transform 0.8s var(--soft),
+      box-shadow 0.8s var(--soft);
+    /* 画像は切らずにカードの中央へ収める（縦が長い画像は上下の余白が同じになるよう高さで合わせる） */
+    img {
+      position: absolute;
+      inset: var(--pad, 7%);
+      margin: auto;
+      width: auto;
+      height: auto;
+      max-width: calc(100% - var(--pad, 7%) * 2);
+      max-height: calc(100% - var(--pad, 7%) * 2);
+      filter: blur(var(--blur, 0px));
+      pointer-events: none;
+    }
+  }
+  &--banner .arc-item__in img {
+    border-radius: 6px;
+  }
+  &--lp .arc-item__in {
+    --pad: 3.5%;
+  }
+  &__in::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: var(--pale, 0);
+    pointer-events: none;
+  }
+  &.is-front:hover .arc-item__in {
+    transform: translateY(-6px);
+    box-shadow:
+      0 40px 60px -34px rgba($ink, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  .js &__in {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+}
+.js .is-ready .arc-item__in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1.4s var(--soft) calc(0.23s + var(--i) * 0.033s),
+    transform 1.4s var(--soft) calc(0.23s + var(--i) * 0.033s),
+    box-shadow 0.8s var(--soft);
+}
+.js .is-ready .arc-item.is-front:hover .arc-item__in {
+  transform: translateY(-6px);
+  transition-delay: 0s;
+}
+.js .is-ready .hero__name > span,
+.js .is-ready .hero__fade {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+/* 最初の読み込みでは、ヘッダーを雫の着地から0.3秒後、STRENGTH を1秒後に現す（JS が .is-held を外す） */
+.header,
+#strength {
+  transition: opacity 1s var(--soft);
+}
+.header.is-held,
+#strength.is-held {
+  opacity: 0;
+  transition: none;
+}
+@include down(sp) {
+  @keyframes scrollDrop {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(56px);
+      opacity: 0;
+    }
+  }
+}

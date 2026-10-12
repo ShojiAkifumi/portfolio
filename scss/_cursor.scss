@@ -1,0 +1,54 @@
+@use "mixins" as *;
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--blue) 55%, transparent);
+  filter: blur(1px);
+  transition:
+    width 0.5s var(--ease),
+    height 0.5s var(--ease),
+    margin 0.5s var(--ease),
+    background 0.5s,
+    filter 0.5s;
+  display: grid;
+  place-items: center;
+  &__label {
+    font-family: var(--font-en);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    color: var(--paper);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  &.is-view {
+    width: 88px;
+    height: 88px;
+    margin: -44px 0 0 -44px;
+    background: color-mix(in srgb, var(--blue) 75%, transparent);
+    filter: none;
+    .cursor__label {
+      opacity: 1;
+    }
+  }
+  &.is-link {
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    background: color-mix(in srgb, var(--sky) 60%, transparent);
+    filter: blur(2px);
+  }
+}
+@include touch {
+  .cursor {
+    display: none;
+  }
+}

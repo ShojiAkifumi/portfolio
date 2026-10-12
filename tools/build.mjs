@@ -2,15 +2,18 @@
 //
 // npm run build : 公開用のファイルを dist/ に書き出します（Cloudflare Pages はこれを公開します）
 //                 - src/*.ts（TypeScript）を1つの JS にまとめて圧縮
-//                 - css/style.css を圧縮
+//                 - scss/style.scss（SCSS）を CSS に変換して圧縮
 //                 - index.html の空白・コメントを取り除いて圧縮
 //                 - ファイル名に中身のハッシュを付け、ブラウザに長くキャッシュさせる（_headers）
-// npm run dev   : 手元の確認用。src/ を保存するたびに js/app.js を作り直し、http://localhost:8080 で表示します
+// npm run dev   : 手元の確認用。src/ や scss/ を保存するたびに js/app.js・css/style.css を作り直し、
+//                 http://localhost:8080 で表示します
 import * as esbuild from "esbuild";
 import { minify } from "html-minifier-terser";
+import { watch } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import * as sass from "sass";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "dist");
@@ -28,8 +31,27 @@ const jsOptions = {
   logLevel: "info",
 };
 
+// scss/style.scss を CSS に変換する
+const scssEntry = path.join(root, "scss/style.scss");
+const compileScss = (opts = {}) => sass.compileAsync(scssEntry, { ...opts }).then((r) => r.css);
+
 if (dev) {
-  // 手元の確認用：保存するたびに js/app.js を作り直し、どの URL でも index.html を返すサーバーで表示
+  // 手元の確認用：保存するたびに js/app.js・css/style.css を作り直し、どの URL でも index.html を返すサーバーで表示
+  const writeCss = async () => {
+    try {
+      await mkdir(path.join(root, "css"), { recursive: true });
+      await writeFile(path.join(root, "css/style.css"), await compileScss({ sourceMap: false }));
+      console.log(`[scss] css/style.css を更新しました`);
+    } catch (e) {
+      console.error(`[scss] ${e.message}`);
+    }
+  };
+  await writeCss();
+  let t = 0;
+  watch(path.join(root, "scss"), { recursive: true }, () => {
+    clearTimeout(t);
+    t = setTimeout(writeCss, 50);
+  });
   const ctx = await esbuild.context({ ...jsOptions, outfile: path.join(root, "js/app.js"), sourcemap: true });
   await ctx.watch();
   const { port } = await ctx.serve({ servedir: root, fallback: path.join(root, "index.html"), port: 8080 });
@@ -57,7 +79,12 @@ async function build() {
     metafile: true,
   });
   const css = await esbuild.build({
-    entryPoints: [path.join(root, "css/style.css")],
+    stdin: {
+      contents: await compileScss(),
+      loader: "css",
+      resolveDir: path.join(root, "css"),
+      sourcefile: "style.css",
+    },
     outdir: path.join(out, "css"),
     entryNames: "style-[hash]",
     minify: true,
