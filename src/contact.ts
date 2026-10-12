@@ -107,6 +107,13 @@ function init(scope: ParentNode) {
       form.reset();
       show("送信しました。内容を確認して、ご入力のメールアドレスにお返事します。", "ok");
     } catch (err) {
+      // 原因を開発者ツールのコンソールで確認できるように残す
+      console.error("[contact] 送信エラー:", err);
+      // FormSubmit を有効化する前は「Activation が必要」という返事が返ってくる
+      if (/activat/i.test(String((err as Error)?.message))) {
+        show("フォームの有効化待ちです。サイト管理者宛てに届いた FormSubmit のメールから有効化してください。", "error");
+        return;
+      }
       show("送信できませんでした。通信環境をご確認のうえ、もう一度お試しください。", "error");
     } finally {
       submit.disabled = false;
