@@ -514,8 +514,8 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
       <h2><span class="ink-dot" aria-hidden="true"></span>ページ全体</h2>
       <p class="screen__hint">枠の中をスクロールすると、ページ全体を見られます。</p>
       <div class="screens">
-        ${w.images.pc ? `<div class="screen screen--pc"><p class="screen__label">PC</p><div class="screen__frame screen__frame--pc" tabindex="0" aria-label="PC表示のスクロール領域"><img src="${esc(w.images.pc)}" alt="${esc(w.title)}のPC表示（全体）" loading="lazy"></div></div>` : ""}
-        ${w.images.sp ? `<div class="screen screen--sp"><p class="screen__label">SMARTPHONE</p><div class="screen__frame screen__frame--sp" tabindex="0" aria-label="スマホ表示のスクロール領域"><img src="${esc(w.images.sp)}" alt="${esc(w.title)}のスマホ表示（全体）" loading="lazy"></div></div>` : ""}
+        ${w.images.pc ? `<div class="screen screen--pc"><p class="screen__label">PC</p><div class="screen__frame screen__frame--pc" tabindex="0" role="region" aria-label="PC表示のスクロール領域"><img src="${esc(w.images.pc)}" alt="${esc(w.title)}のPC表示（全体）" loading="lazy"></div></div>` : ""}
+        ${w.images.sp ? `<div class="screen screen--sp"><p class="screen__label">SMARTPHONE</p><div class="screen__frame screen__frame--sp" tabindex="0" role="region" aria-label="スマホ表示のスクロール領域"><img src="${esc(w.images.sp)}" alt="${esc(w.title)}のスマホ表示（全体）" loading="lazy"></div></div>` : ""}
       </div>
     </section>`
       : "";

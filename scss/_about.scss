@@ -163,7 +163,8 @@
       gap: 0;
     }
   }
-  time {
+  time,
+  .timeline__now {
     font-family: var(--font-en);
     font-weight: 600;
     font-size: 0.9rem;
