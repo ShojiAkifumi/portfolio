@@ -58,7 +58,7 @@
   // 画面切り替えのにじみ（以前の2段階の切り替えと同じ色・形）
   //  ノイズは JS と同じ乱数表（uLut）から作り、JS 側で求めた「次の画面が見える範囲」（uRc）とぴったり重なるようにする
   //  - 座標 p は画面の高さを 1 とした単位（上向きが +y）。uR が大きくなるほどにじみが広がる
-  //  - 最初の読み込み（トップ）では、にじみは出さずに（uInk=0）ページの上に手前から雫を落とす
+  //  - 最初の読み込みでは、にじみは出さずに（uInk=0）白い紙（uPaper）を消していき、トップでは先に手前から雫を落とす
   const BLOOM_FRAG = `
     precision highp float;
     uniform vec2 uRes;
@@ -123,7 +123,7 @@
       col=over(col, vec3(1.), outer*uPaper);
       // 着地点の影：雫が近づくほど小さく濃くなる
       vec2 q0=(px-uOrigin)/(14.+40.*(1.-uShadow));
-      col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28);
+      col=over(col, vec3(.52,.68,.84), exp(-dot(q0,q0)*1.6)*uShadow*.28*uPaper);
       col=over(col, ink, band*.94);
       // 落ちてくる雫：ロゴと同じ水彩のにじみ。手前ではぼけて大きく、奥へ行くほど小さくくっきり
       vec2 q=(px-uDrop)/max(uDropR,.001);
@@ -368,14 +368,15 @@
     },
     // にじみを1回再生する
     //  origin: {x, y}（ビューポートの px） / drop: 先に雫を落とす / bleed: false ならにじみを広げない
+    //  paper: 白い紙で覆っておき、（雫の着地後に）duration かけてふわっと消す
     //  onClip(polygon): 次の画面を見せる範囲（clip-path の polygon）。onImpact: 雫が着地した時
-    //  最初の読み込みは drop: true, bleed: false（ページの上に雫が落ち、着地したらふわっと消える）
-    play({ origin, duration = 1700, drop = false, bleed = true, onClip, onImpact, done }) {
+    //  最初の読み込みは paper: true, bleed: false（トップは drop: true）
+    play({ origin, duration = 1700, drop = false, bleed = true, paper = false, onClip, onImpact, done }) {
       const g = this.ensure();
       if (!g || reduceMotion) { onImpact && onImpact(); done && done(); return false; }
       const gl = g.gl, c = this.canvas;
       c.hidden = false;
-      c.classList.toggle('is-cover', drop);
+      c.classList.toggle('is-cover', drop || paper);
       const vw = window.innerWidth, vh = window.innerHeight;
       const r = g.resize(Math.min(1, 900 / Math.max(vw, 1)) * Math.min(window.devicePixelRatio || 1, 1.5));
       const A = arrival(origin.x, origin.y, r.width, r.height);
@@ -384,7 +385,7 @@
       g.set('uRes', c.width, c.height);
       g.set('uView', r.width, r.height);
       g.set('uOrigin', origin.x, origin.y);
-      g.set('uPaper', 0);
+      g.set('uPaper', paper ? 1 : 0);
       g.set('uInk', bleed ? 1 : 0);
       g.set('uRcMax', rcMax);
 
@@ -424,6 +425,7 @@
 
         // にじみ
         const x = Math.min(1, Math.max(0, (t - DROP) / duration));
+        if (paper) g.set('uPaper', 1 - x * x * (3 - 2 * x));
         const R = easeOut(x) * A.rEnd;
         g.set('uR', R);
         reach(A, R, rc);

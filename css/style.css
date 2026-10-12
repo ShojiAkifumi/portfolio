@@ -698,8 +698,8 @@ html:not(.ink-masks) .ink-edge {
   opacity: 1;
   transform: none;
   transition:
-    opacity 1.4s var(--soft) calc(0.7s + var(--i) * 0.1s),
-    transform 1.4s var(--soft) calc(0.7s + var(--i) * 0.1s),
+    opacity 1.4s var(--soft) calc(0.23s + var(--i) * 0.033s),
+    transform 1.4s var(--soft) calc(0.23s + var(--i) * 0.033s),
     box-shadow 0.8s var(--soft);
 }
 .js .is-ready .arc-item.is-front:hover .arc-item__in {
@@ -707,10 +707,10 @@ html:not(.ink-masks) .ink-edge {
   transition-delay: 0s;
 }
 .js .hero__catch.hero__fade {
-  transition-delay: 0.5s;
+  transition-delay: 0.17s;
 }
 .js .arc__label.hero__fade {
-  transition-delay: 1.5s;
+  transition-delay: 0.5s;
 }
 .js .hero__name > span,
 .js .hero__fade {
@@ -723,22 +723,22 @@ html:not(.ink-masks) .ink-edge {
     filter 1.6s var(--soft);
 }
 .js .hero__eyebrow.hero__fade {
-  transition-delay: 0.3s;
+  transition-delay: 0.1s;
 }
 .js .hero__name-ja {
-  transition-delay: 0.95s !important;
+  transition-delay: 0.32s !important;
 }
 .js .hero__name-en {
-  transition-delay: 1.1s !important;
+  transition-delay: 0.37s !important;
 }
 .js .hero__role.hero__fade {
-  transition-delay: 1.2s;
+  transition-delay: 0.4s;
 }
 .js .hero__tags.hero__fade {
-  transition-delay: 1.3s;
+  transition-delay: 0.43s;
 }
 .js .hero__cta.hero__fade {
-  transition-delay: 1.4s;
+  transition-delay: 0.47s;
 }
 .js .is-ready .hero__name > span,
 .js .is-ready .hero__fade {
