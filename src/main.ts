@@ -170,7 +170,7 @@ function initPointer() {
       ty = e.clientY;
       const el = e.target as Element;
       const view = el.closest?.('[data-cursor="view"]');
-      const link = !view && el.closest?.("a, button, label, select");
+      const link = !view && el.closest?.("a, button, label, select, summary");
       cur.classList.toggle("is-view", !!view);
       cur.classList.toggle("is-link", !!link);
     },
