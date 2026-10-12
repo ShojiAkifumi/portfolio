@@ -10,6 +10,11 @@ const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matc
 type Point = { x: number; y: number };
 
 /* ---------- ヘッダー ---------- */
+// スマホのメニューの中のリンクで閉じた時は true（パネルが消えるのを待ってから画面を切り替える）
+let menuClosedByLink = false;
+// メニューのパネルが消える時間（scss/_header.scss の .nav の transition と同じ）
+const MENU_FADE_MS = 500;
+
 function initHeader() {
   const header = $(".header");
   if (!header) return;
@@ -26,7 +31,12 @@ function initHeader() {
       btn.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
     };
     btn.addEventListener("click", () => set(!document.body.classList.contains("menu-open")));
-    $$("a", nav).forEach((a) => a.addEventListener("click", () => set(false)));
+    $$("a", nav).forEach((a) =>
+      a.addEventListener("click", () => {
+        menuClosedByLink = document.body.classList.contains("menu-open");
+        set(false);
+      }),
+    );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") set(false);
     });
@@ -356,6 +366,8 @@ function scrollToHash(hash: string) {
 function initLinks() {
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   document.addEventListener("click", (e) => {
+    const fromMenu = menuClosedByLink;
+    menuClosedByLink = false;
     const a = (e.target as Element).closest?.<HTMLAnchorElement>("a[href]");
     if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     if (a.target === "_blank" || a.hasAttribute("download")) return;
@@ -378,7 +390,11 @@ function initLinks() {
       scrollToHash(url.hash || "#top");
       return;
     }
-    navigate(url, { origin: { x: e.clientX, y: e.clientY } });
+    const go = () => navigate(url, { origin: { x: e.clientX, y: e.clientY } });
+    // メニューから移動する時は、パネルがバツで閉じた時と同じようにゆっくり消えてから切り替える
+    // （すぐに切り替えると、次の画面の準備の間アニメーションが止まり、パネルがパッと消えて見える）
+    if (fromMenu) setTimeout(go, MENU_FADE_MS);
+    else go();
   });
   window.addEventListener("popstate", (e) => {
     const r = route(new URL(location.href));
