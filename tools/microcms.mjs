@@ -20,7 +20,8 @@ export async function fetchWorks() {
     items.push(...data.contents);
     if (items.length >= data.totalCount || !data.contents.length) break;
   }
-  return items.map(toWork);
+  // 下書きのまま一度も公開していない実績は出さない（下書きも取得できる権限のキーを使った時の保険）
+  return items.filter((c) => c.publishedAt).map(toWork);
 }
 
 // セレクトの表示名 → works.json の値
