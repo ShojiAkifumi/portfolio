@@ -39,6 +39,10 @@
     --header-h: 66px;
   }
 }
+/* hidden 属性を付けた要素は、display を指定していても必ず隠す（「もっと見る」など） */
+[hidden] {
+  display: none !important;
+}
 *,
 *::before,
 *::after {
