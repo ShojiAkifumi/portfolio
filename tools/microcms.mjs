@@ -25,7 +25,19 @@ export async function fetchWorks() {
 }
 
 // セレクトの表示名 → works.json の値
-const CATEGORY = { LP: "lp", バナー: "banner" };
+// microCMS のカテゴリ（セレクト）の値 → サイト内の名前（「ロゴ制作」のような書き方でも通るようにしておく）
+const CATEGORY = {
+  LP: "lp",
+  LP制作: "lp",
+  HP: "hp",
+  HP制作: "hp",
+  バナー: "banner",
+  バナー制作: "banner",
+  ロゴ: "logo",
+  ロゴ制作: "logo",
+  アプリ: "app",
+  アプリ開発: "app",
+};
 const first = (v) => (Array.isArray(v) ? v[0] : v);
 // 改行区切りのテキスト → 配列（空の行は無視）
 const lines = (s) =>

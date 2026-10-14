@@ -23,6 +23,18 @@
         {
           "id": "d172a5a727",
           "value": "バナー"
+        },
+        {
+          "id": "a3c1f0e7b2",
+          "value": "HP"
+        },
+        {
+          "id": "b7d24e9c51",
+          "value": "ロゴ"
+        },
+        {
+          "id": "c9e5a1d36f",
+          "value": "アプリ"
         }
       ],
       "multipleSelect": false,
@@ -180,28 +192,28 @@
     },
     {
       "fieldId": "mockup",
-      "name": "一覧用の画像（LP）",
+      "name": "一覧用の画像（LP・HP・アプリ）",
       "kind": "media",
       "description": "PC・スマホの合成画像（npm run capture -- lp で作れます）",
       "required": false
     },
     {
       "fieldId": "banner",
-      "name": "バナー画像",
+      "name": "バナー・ロゴ画像",
       "kind": "media",
       "description": null,
       "required": false
     },
     {
       "fieldId": "pc",
-      "name": "PC表示の全体（LP）",
+      "name": "PC表示の全体（LP・HP・アプリ）",
       "kind": "media",
       "description": null,
       "required": false
     },
     {
       "fieldId": "sp",
-      "name": "スマホ表示の全体（LP）",
+      "name": "スマホ表示の全体（LP・HP・アプリ）",
       "kind": "media",
       "description": null,
       "required": false

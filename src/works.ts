@@ -27,10 +27,15 @@ export interface Work {
   images?: { mockup?: string; banner?: string; pc?: string; sp?: string };
   _i: number;
 }
-type Cat = "lp" | "banner";
+type Cat = "lp" | "hp" | "banner" | "logo" | "app";
 
-const CATS: Record<Cat, string> = { lp: "LP", banner: "バナー" };
-const catOf = (w: Work): Cat => (w.category === "banner" ? "banner" : "lp");
+// カテゴリの表示名（日本語）と、一覧の絞り込みボタンの表示名（英字）。並び順は絞り込みボタンの順
+const CATS: Record<Cat, string> = { lp: "LP", hp: "HP", banner: "バナー", logo: "ロゴ", app: "アプリ" };
+const CAT_FILTER: Record<Cat, string> = { lp: "LP", hp: "WEBSITE", banner: "BANNER", logo: "LOGO", app: "APP" };
+const isCat = (c: unknown): c is Cat => typeof c === "string" && c in CATS;
+const catOf = (w: Work): Cat => (isCat(w.category) ? w.category : "lp");
+// バナー・ロゴは1枚の画像（images.banner）で見せる。LP・HP・アプリはPC・スマホの画面で見せる
+const isSingle = (c: Cat) => c === "banner" || c === "logo";
 const esc = (s: unknown) =>
   String(s ?? "").replace(
     /[&<>"']/g,
@@ -69,12 +74,12 @@ function cardHTML(w: Work) {
   const cat = catOf(w);
   return `
     <a class="work-card" href="${workURL(w)}" data-reveal data-cursor="view">
-      <div class="work-card__visual work-card__visual--${cat} ink-reveal">
+      <div class="work-card__visual work-card__visual--${isSingle(cat) ? "banner" : cat} ink-reveal">
         <img src="${esc(thumbOf(w))}" alt="${esc(w.title)}" loading="lazy" decoding="async">
       </div>
       <div class="work-card__meta">
         <p class="work-card__tags">
-          <span class="chip${cat === "banner" ? " chip--banner" : ""}">${CATS[cat]}</span>
+          <span class="chip${isSingle(cat) ? " chip--banner" : ""}">${CATS[cat]}</span>
           ${w.type === "実案件" ? `<span class="chip chip--client">${esc(w.type)}</span>` : `<span class="chip chip--line">${esc(w.type || "自主制作")}</span>`}
           <span>${esc(w.industry || "")}</span>
         </p>
@@ -86,11 +91,7 @@ function cardHTML(w: Work) {
 
 function renderFilter(box: HTMLElement, works: Work[], current: string, onChange: (cat: string) => void) {
   const count = (c: string) => (c === "all" ? works.length : works.filter((w) => w.category === c).length);
-  const items = [
-    ["all", "ALL"],
-    ["lp", "LP"],
-    ["banner", "BANNER"],
-  ];
+  const items = [["all", "ALL"], ...Object.entries(CAT_FILTER)];
   box.innerHTML = items
     .map(
       ([k, label]) =>
@@ -147,7 +148,7 @@ function Arc(root: HTMLElement, list: Work[], interval: number, signal: AbortSig
     list.forEach((w, i) => {
       const cat = catOf(w);
       const a = document.createElement("a");
-      a.className = `arc-item arc-item--${cat}`;
+      a.className = `arc-item arc-item--${isSingle(cat) ? "banner" : cat}`;
       a.href = workURL(w);
       a.dataset.cursor = "view";
       a.innerHTML = `<span class="arc-item__in" style="--i:${items.length}"><img src="${esc(thumbOf(w))}" alt="${c ? "" : esc(w.title)}" decoding="async"></span>`;
@@ -438,7 +439,8 @@ async function initList(scope: ParentNode, signal: AbortSignal): Promise<void> {
   const moreBtn = moreBox && moreBox.querySelector("button");
   const box = grid;
   const qs = new URLSearchParams(location.search);
-  let cat = qs.get("cat") === "lp" || qs.get("cat") === "banner" ? (qs.get("cat") as string) : "all";
+  const q = qs.get("cat");
+  let cat: string = isCat(q) ? q : "all";
   let shown = 0;
   const filtered = () => works.filter((w) => cat === "all" || w.category === cat);
   const more = () => {
@@ -502,13 +504,12 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
     ["TOOLS", (w.tools || []).join(" / ")],
   ].filter((m): m is [string, string] => !!m && !!m[1]);
 
-  const visual =
-    cat === "banner"
-      ? `<div class="detail-visual detail-visual--banner ink-reveal"><img src="${esc(w.images?.banner)}" alt="${esc(w.title)}" width="1080" height="1080"></div>`
-      : `<div class="detail-visual ink-reveal"><img src="${esc(w.images?.mockup || thumbOf(w))}" alt="${esc(w.title)}のPC・スマホ表示" width="1600" height="1040"></div>`;
+  const visual = isSingle(cat)
+    ? `<div class="detail-visual detail-visual--banner ink-reveal"><img src="${esc(w.images?.banner)}" alt="${esc(w.title)}" width="1080" height="1080"></div>`
+    : `<div class="detail-visual ink-reveal"><img src="${esc(w.images?.mockup || thumbOf(w))}" alt="${esc(w.title)}のPC・スマホ表示" width="1600" height="1040"></div>`;
 
   const screens =
-    cat === "lp" && w.images && (w.images.pc || w.images.sp)
+    !isSingle(cat) && w.images && (w.images.pc || w.images.sp)
       ? `
     <section class="detail-sec" data-reveal>
       <h2><span class="ink-dot" aria-hidden="true"></span>ページ全体</h2>
@@ -527,7 +528,7 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
         <ol class="breadcrumb"><li><a href="/">HOME</a></li><li><a href="/works">WORKS</a></li><li aria-current="page">${esc(w.title)}</li></ol>
         <div class="detail-head">
           <p class="detail-head__tags">
-            <span class="chip${cat === "banner" ? " chip--banner" : ""}">${CATS[cat]}</span>
+            <span class="chip${isSingle(cat) ? " chip--banner" : ""}">${CATS[cat]}</span>
             ${w.type === "実案件" ? `<span class="chip chip--client">${esc(w.type)}</span>` : `<span class="chip chip--line">${esc(w.type || "自主制作")}</span>`}
           </p>
           <h1 class="detail-head__title">${esc(w.title)}</h1>
