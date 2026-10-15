@@ -93,6 +93,12 @@
     p + p {
       margin-top: 1em;
     }
+    // 大事な一文に、文字の下半分へ淡い青のマーカーを引く
+    strong {
+      background: linear-gradient(transparent 58%, color-mix(in srgb, var(--sky) 85%, transparent) 58%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
   }
   &__block {
     margin-top: 40px;
