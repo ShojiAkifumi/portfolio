@@ -54,6 +54,11 @@
   &:hover .btn__arrow {
     transform: translateX(4px);
   }
+  // 別タブで開く・送信（紙飛行機）は、右上へ少し動く
+  &:hover .btn__arrow--external,
+  &:hover .btn__arrow--send {
+    transform: translate(2px, -2px);
+  }
   &--sm {
     min-height: 44px;
     padding: 0 22px;
