@@ -20,6 +20,11 @@ function init(scope: ParentNode) {
         : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
           ? ""
           : "メールアドレスの形式をご確認ください（例：name@example.com）。",
+    // 任意。入力された時だけ、数字・ハイフン・括弧・+ と10〜11桁程度か確認する
+    tel: (v) =>
+      !v.trim() || (/^[\d０-９\-()+\s－ー（）]+$/.test(v.trim()) && (v.match(/[\d０-９]/g) || []).length >= 10)
+        ? ""
+        : "電話番号の形式をご確認ください（例：090-1234-5678）。",
     message: (v) => (v.trim() ? "" : "ご相談内容を入力してください。"),
   };
 
@@ -47,6 +52,7 @@ function init(scope: ParentNode) {
     name: "お名前",
     company: "会社名・屋号",
     email: "メールアドレス",
+    tel: "電話番号",
     service: "ご依頼内容",
     budget: "ご予算",
     deadline: "ご希望の納期",

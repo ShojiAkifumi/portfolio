@@ -56,6 +56,7 @@
   &__row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start; // 片方にエラー文が出ても、もう片方の欄の位置がずれないように
     gap: 22px;
     @include down(sp) {
       grid-template-columns: minmax(0, 1fr);
