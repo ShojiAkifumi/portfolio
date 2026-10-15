@@ -20,6 +20,13 @@
   background: radial-gradient(circle at 35% 35%, var(--sky), var(--blue));
   flex: none;
 }
+/* 見出し（h1・h2）の印は、青い丸の代わりにサイトロゴのマークを使う */
+:is(h1, h2) .ink-dot {
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 0;
+  background: url("/images/logo-mark.png") center / contain no-repeat;
+}
 /* セクション境界の、筆でなでたようなインクのふち */
 .ink-edge {
   position: absolute;
