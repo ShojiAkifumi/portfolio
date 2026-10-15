@@ -144,7 +144,7 @@ function initPointer() {
   document.addEventListener(
     "pointermove",
     (e) => {
-      const t = (e.target as Element).closest?.<HTMLElement>(".btn");
+      const t = (e.target as Element).closest?.<HTMLElement>(".btn, .faq__q");
       if (!t) return;
       const r = t.getBoundingClientRect();
       t.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`);
