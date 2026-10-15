@@ -4,7 +4,18 @@ import { $$ } from "./site";
 
 const EASE = "cubic-bezier(0.33, 0.1, 0.2, 1)";
 
+// 開閉中はブラウザのスクロール位置の自動調整（scroll anchoring）を止める。
+// 止めないと、下にある要素を基準に画面がずれ、質問の上端が動いて見える
+let anchorTimer = 0;
+function holdScroll(ms: number) {
+  const root = document.documentElement;
+  root.style.overflowAnchor = "none";
+  clearTimeout(anchorTimer);
+  anchorTimer = window.setTimeout(() => (root.style.overflowAnchor = ""), ms + 100);
+}
+
 function animate(item: HTMLDetailsElement, summary: HTMLElement, opening: boolean) {
+  holdScroll(600);
   const answer = item.querySelector<HTMLElement>(".faq__a");
   const closed = summary.offsetHeight;
   const from = item.offsetHeight;
@@ -36,6 +47,7 @@ function init(scope: ParentNode, signal: AbortSignal) {
       "click",
       (e) => {
         if (reduceMotion) {
+          holdScroll(0);
           item.classList.toggle("is-open", !item.open);
           return;
         }
