@@ -119,6 +119,10 @@ fieldset.field {
   border: 0;
   margin: 0;
   padding: 0;
+  // legend は fieldset のグリッドの外に置かれ gap が効かないので、余白は margin で取る
+  > legend {
+    margin-bottom: 8px;
+  }
 }
 .input {
   width: 100%;
