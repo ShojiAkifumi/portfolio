@@ -56,6 +56,15 @@ function init(scope: ParentNode, signal: AbortSignal) {
       },
       { signal },
     );
+    // 開いている時は、答えの部分を押しても閉じる（文字を選択した時は閉じない）
+    item.querySelector(".faq__a")?.addEventListener(
+      "click",
+      () => {
+        if (!item.classList.contains("is-open") || String(window.getSelection() || "")) return;
+        summary.click();
+      },
+      { signal },
+    );
   });
 }
 

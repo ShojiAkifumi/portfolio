@@ -145,7 +145,7 @@ function initPointer() {
   document.addEventListener(
     "pointermove",
     (e) => {
-      const t = (e.target as Element).closest?.<HTMLElement>(".btn, .faq__q");
+      const t = (e.target as Element).closest?.<HTMLElement>(".btn, .faq__item");
       if (!t) return;
       const r = t.getBoundingClientRect();
       t.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`);
@@ -171,7 +171,7 @@ function initPointer() {
       ty = e.clientY;
       const el = e.target as Element;
       const view = el.closest?.('[data-cursor="view"]');
-      const link = !view && el.closest?.("a, button, label, select, summary");
+      const link = !view && el.closest?.("a, button, label, select, summary, .is-open .faq__a");
       cur.classList.toggle("is-view", !!view);
       cur.classList.toggle("is-link", !!link);
     },

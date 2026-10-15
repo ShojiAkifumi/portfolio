@@ -19,7 +19,14 @@
   margin-inline: auto;
   &__item {
     overflow: hidden;
-    background: var(--paper);
+    // ghost ボタンと同じ、カーソルの位置に広がる淡い青のにじみ（カード全体。位置 --mx/--my は main.ts の initPointer で更新）
+    background:
+      radial-gradient(
+        circle var(--glow) at var(--mx, 50%) var(--my, 50%),
+        var(--sky) 0,
+        color-mix(in srgb, var(--sky) 0%, transparent) 100%
+      ),
+      var(--paper);
     border: 1px solid var(--line);
     border-radius: var(--radius);
   }
@@ -30,11 +37,20 @@
       transform 1.4s var(--soft) var(--delay, 0s),
       filter 1.4s var(--soft) var(--delay, 0s),
       border-color 0.5s,
-      translate 0.5s var(--ease);
+      translate 0.5s var(--ease),
+      --glow 0.8s var(--soft);
   }
-  &__item:not(.is-pending):has(.faq__q:hover) {
-    border-color: color-mix(in srgb, var(--blue) 40%, var(--line));
-    translate: 0 -2px; // ボタン（.btn）と同じく少し浮く
+  // 閉じている時は質問の行、開いている時はカード全体がクリックできる範囲
+  @media (hover: hover) {
+    &__item:not(.is-pending):has(.faq__q:hover),
+    &__item.is-open:not(.is-pending):hover {
+      --glow: 220px;
+      border-color: color-mix(in srgb, var(--blue) 40%, var(--line));
+      translate: 0 -2px; // ボタン（.btn）と同じく少し浮く
+    }
+  }
+  &__item.is-open .faq__a {
+    cursor: pointer;
   }
   &__q {
     position: relative;
@@ -45,18 +61,6 @@
     line-height: 1.6;
     cursor: pointer;
     list-style: none;
-    // ghost ボタンと同じ、カーソルの位置に広がる淡い青のにじみ（位置 --mx/--my は main.ts の initPointer で更新）
-    background: radial-gradient(
-      circle var(--glow) at var(--mx, 50%) var(--my, 50%),
-      var(--sky) 0,
-      color-mix(in srgb, var(--sky) 0%, transparent) 100%
-    );
-    transition: --glow 0.8s var(--soft);
-    @media (hover: hover) {
-      &:hover {
-        --glow: 220px;
-      }
-    }
     user-select: none;
     &::-webkit-details-marker {
       display: none;
