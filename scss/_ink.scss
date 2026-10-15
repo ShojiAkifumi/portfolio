@@ -12,20 +12,13 @@
       radial-gradient(30% 40% at 90% 75%, color-mix(in srgb, var(--gray) 35%, transparent), transparent 70%);
   }
 }
+/* 見出しなどの頭に付ける印（サイトロゴのマーク） */
 .ink-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50% 45% 55% 50%;
-  background: radial-gradient(circle at 35% 35%, var(--sky), var(--blue));
-  flex: none;
-}
-/* 見出し（h1・h2）の印は、青い丸の代わりにサイトロゴのマークを使う */
-:is(h1, h2) .ink-dot {
-  width: 1.4em;
-  height: 1.4em;
-  border-radius: 0;
+  width: 1em;
+  height: 1em;
   background: url("/images/logo-mark.png") center / contain no-repeat;
+  flex: none;
 }
 /* セクション境界の、筆でなでたようなインクのふち */
 .ink-edge {
