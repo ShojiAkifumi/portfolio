@@ -93,11 +93,19 @@
     p + p {
       margin-top: 1em;
     }
-    // 大事な一文に、文字の下半分へ淡い青のマーカーを引く
-    strong {
-      background: linear-gradient(transparent 58%, color-mix(in srgb, var(--sky) 85%, transparent) 58%);
+    // 大事な一文に、文字の下の方へ淡い青のマーカーを引く（1行ずつ左から右へ。src/marker.ts）
+    .marker__line {
+      background: linear-gradient(
+          color-mix(in srgb, var(--sky) 60%, transparent),
+          color-mix(in srgb, var(--sky) 60%, transparent)
+        )
+        left bottom 0.08em / 0% 30% no-repeat;
       -webkit-box-decoration-break: clone;
       box-decoration-break: clone;
+      transition: background-size 0.9s var(--soft) calc(var(--i, 0) * 0.55s);
+    }
+    .is-marked .marker__line {
+      background-size: 100% 30%;
     }
   }
   &__block {

@@ -2,6 +2,7 @@
 import { SITE_CONFIG } from "./config";
 import { Contact } from "./contact";
 import { Faq } from "./faq";
+import { Marker } from "./marker";
 import { InkCloud, InkTransition, reduceMotion, type CloudOptions } from "./ink";
 import { $, $$, Reveal, setMeta } from "./site";
 import { Views, type ViewDef, type ViewName } from "./views";
@@ -266,6 +267,7 @@ async function initView(view: HTMLElement, r: Route, signal: AbortSignal) {
     jobs.push(Works.initHero(main, signal));
     Contact.init(main);
     Faq.init(main, signal);
+    Marker.init(main, signal);
   }
   if (r.name === "works") jobs.push(Works.initList(main, signal));
   if (r.name === "detail") jobs.push(Works.initDetail(main, signal, r.id || ""));
