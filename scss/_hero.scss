@@ -187,7 +187,7 @@
     transition-delay: 0.47s;
   }
   @include down(sp) {
-    padding-block: calc(var(--header-h) + 20px) 120px;
+    padding-block: calc(var(--header-h) + 20px) 144px; // 次のセクションとの境目の上下の余白がそろうように
     min-height: 0;
   }
   &__cta .btn {
@@ -265,20 +265,56 @@
   &__stage {
     position: absolute;
     inset: 0;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent,
+      #000 10%,
+      #000 90%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      180deg,
+      transparent,
+      #000 10%,
+      #000 90%,
+      transparent
+    );
     touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
     @include between(sp, pc) {
-      -webkit-mask-image: linear-gradient(180deg, transparent, #000 3%, #000 97%, transparent);
-      mask-image: linear-gradient(180deg, transparent, #000 3%, #000 97%, transparent);
+      -webkit-mask-image: linear-gradient(
+        180deg,
+        transparent,
+        #000 3%,
+        #000 97%,
+        transparent
+      );
+      mask-image: linear-gradient(
+        180deg,
+        transparent,
+        #000 3%,
+        #000 97%,
+        transparent
+      );
     }
     @include down(sp) {
       position: relative;
       inset: auto;
-      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+      );
+      mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+      );
       height: clamp(200px, 46vw, 380px);
     }
   }
@@ -403,7 +439,11 @@
     padding: 7%;
     border-radius: 16px;
     overflow: hidden;
-    background: linear-gradient(150deg, rgba(255, 255, 255, 0.9) 0%, rgba(214, 233, 250, 0.28) 100%);
+    background: linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(214, 233, 250, 0.28) 100%
+    );
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     backdrop-filter: blur(14px) saturate(140%);
     border: 1px solid rgba(255, 255, 255, 0.75);

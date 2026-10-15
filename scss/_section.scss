@@ -3,10 +3,34 @@
 .section {
   overflow-x: clip;
   position: relative;
-  padding-block: clamp(96px, 12vw, 168px);
+  --pad: clamp(96px, 12vw, 168px);
+  padding-block: var(--pad);
   &--mist {
     background: var(--mist);
   }
+}
+// 背景色の境目は、インクのふち（.ink-edge）が隣のセクションへはみ出す分だけ見た目の境目がずれる。
+// そのずれ（--edge-e）を上下の余白で相殺して、境目の上と下の余白がそろって見えるようにする
+:root {
+  --edge-e: 0px;
+}
+.ink-masks {
+  --edge-e: 64px;
+  @include down(sp) {
+    --edge-e: 40px;
+  }
+}
+.section[data-ink-edge~="top"] {
+  padding-top: calc(var(--pad) - var(--edge-e));
+}
+.section[data-ink-edge~="bottom"] {
+  padding-bottom: calc(var(--pad) - var(--edge-e));
+}
+.section[data-ink-edge~="bottom"] + .section {
+  padding-top: calc(var(--pad) + var(--edge-e));
+}
+.section:has(+ .section[data-ink-edge~="top"]) {
+  padding-bottom: calc(var(--pad) + var(--edge-e));
 }
 .section-head {
   display: grid;
@@ -97,7 +121,11 @@
       inset: -10%;
       z-index: 4;
       pointer-events: none;
-      background: radial-gradient(closest-side, color-mix(in srgb, var(--sky) 90%, transparent), transparent);
+      background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--sky) 90%, transparent),
+        transparent
+      );
       opacity: 0;
       animation: inkBloom 1.6s var(--soft) var(--ink-delay, 0s) forwards;
     }

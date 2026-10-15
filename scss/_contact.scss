@@ -4,8 +4,6 @@
   position: relative;
   overflow: hidden;
   background: linear-gradient(180deg, var(--paper), #eef7fe);
-  // 上の FAQ のにじみがかぶる分、ほかのセクションより上の余白を広めに
-  padding-top: calc(clamp(96px, 12vw, 168px) + clamp(40px, 5vw, 64px));
   &__inner {
     position: relative;
     display: grid;
