@@ -14,9 +14,9 @@ export const SITE_CONFIG: SiteConfig = {
   formEndpoint: "https://formsubmit.co/ajax/ackeytoday@gmail.com",
 
   // フッターのSNSアイコン。公開する時は showSns を true にして url を入れてください
-  showSns: false,
+  showSns: true,
   sns: [
-    { name: "X", url: "" },
+    { name: "X", url: "https://x.com/shojiwebdesign" },
     { name: "Instagram", url: "" },
     { name: "note", url: "" },
   ],

@@ -42,8 +42,55 @@
     }
   }
 }
+// XのDMへの案内（フォームを止めている間だけ表示）
+.dm {
+  align-self: start;
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding: clamp(24px, 4vw, 48px);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: calc(var(--radius) + 8px);
+  box-shadow: var(--shadow);
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--ink);
+    svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+    }
+  }
+  &__title {
+    font-family: var(--font-head);
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  &__text {
+    color: var(--ink-soft);
+  }
+  &__btn {
+    margin-top: 8px;
+  }
+  &__id {
+    font-family: var(--font-en);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--gray);
+  }
+}
 .form {
   display: grid;
+  &[hidden] {
+    display: none;
+  }
   gap: 22px;
   padding: clamp(24px, 4vw, 48px);
   background: color-mix(in srgb, var(--paper) 86%, transparent);
