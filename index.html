@@ -646,7 +646,33 @@
             </ul>
           </div>
 
-          <form class="form" id="contact-form" novalidate data-reveal>
+          <!-- 今はXのDMで受け付け中。フォームに戻す時は、このカードを消して下のフォームの hidden を外してください -->
+          <div class="dm" data-reveal>
+            <span class="dm__icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <path
+                  d="M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"
+                /></svg
+            ></span>
+            <p class="dm__title">お問い合わせは X（旧Twitter）のDMで受け付けています</p>
+            <p class="dm__text">
+              プロフィールのメッセージボタンから、ご依頼の内容やご予算、ご希望の納期などをお気軽にお送りください。
+            </p>
+            <a class="btn dm__btn" href="https://x.com/shojiwebdesign" target="_blank" rel="noopener"
+              >XのDMで相談する<svg
+                class="btn__arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" /></svg
+            ></a>
+            <p class="dm__id">@shojiwebdesign</p>
+          </div>
+
+          <form class="form" id="contact-form" novalidate hidden>
             <div class="form__row">
               <div class="field">
                 <label for="f-name">お名前 <span class="req">必須</span></label>
