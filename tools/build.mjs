@@ -122,7 +122,8 @@ async function build() {
   // 画像と実績データはそのままコピー
   await cp(path.join(root, "images"), path.join(out, "images"), { recursive: true });
   await mkdir(path.join(out, "data"), { recursive: true });
-  await writeFile(path.join(out, "data/works.json"), JSON.stringify(await loadWorks()));
+  const works = await loadWorks();
+  await writeFile(path.join(out, "data/works.json"), JSON.stringify(works));
 
   // index.html：JS・CSS をハッシュ付きの名前に差し替えて圧縮
   let html = await readFile(path.join(root, "index.html"), "utf8");
@@ -142,6 +143,23 @@ async function build() {
     sortClassName: false,
   });
   await writeFile(path.join(out, "index.html"), html);
+
+  // 検索エンジン向け：サイトマップと robots.txt（URL は index.html の og:url から取る）
+  const site = (html.match(/property="og:url"[^>]*content="([^"]+)"|content="([^"]+)"[^>]*property="og:url"/) || [])
+    .slice(1)
+    .find(Boolean)
+    ?.replace(/\/+$/, "");
+  if (!site) throw new Error("index.html の og:url が見つかりません");
+  const urls = ["/", "/works", ...works.map((w) => `/works/${encodeURIComponent(w.id)}`)];
+  await writeFile(
+    path.join(out, "sitemap.xml"),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map((u) => `  <url><loc>${site}${u}</loc></url>`).join("\n")}
+</urlset>
+`,
+  );
+  await writeFile(path.join(out, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${site}/sitemap.xml\n`);
 
   // Cloudflare Pages に渡すキャッシュの設定
   //  - ハッシュ付きの JS・CSS は中身が変わると名前も変わるので、1年キャッシュ
