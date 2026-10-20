@@ -1,6 +1,7 @@
 // サイト全体の設定（変更したら npm run build で反映されます）
 export interface SiteConfig {
   formEndpoint: string;
+  gaId: string;
   showSns: boolean;
   sns: { name: string; url: string }[];
   heroWorksCount: number;
@@ -12,6 +13,9 @@ export const SITE_CONFIG: SiteConfig = {
   // お問い合わせフォームの送信先（FormSubmit 経由で ackeytoday@gmail.com に届きます）
   // 空にすると送信ボタンを押しても送信されず、準備中の案内が表示されます
   formEndpoint: "https://formsubmit.co/ajax/ackeytoday@gmail.com",
+
+  // Googleアナリティクス 4 の測定ID（空にすると計測しません）
+  gaId: "G-V6GZ8QM1N9",
 
   // フッターのSNSアイコン。公開する時は showSns を true にして url を入れてください
   showSns: true,

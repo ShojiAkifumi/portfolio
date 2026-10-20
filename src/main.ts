@@ -1,4 +1,5 @@
 // 共通の演出: 画面切り替え / ヘッダー / インクの背景 / カーソル（ここからサイト全体が動き出す）
+import { pageView } from "./analytics";
 import { SITE_CONFIG } from "./config";
 import { Contact } from "./contact";
 import { Faq } from "./faq";
@@ -272,6 +273,8 @@ async function initView(view: HTMLElement, r: Route, signal: AbortSignal) {
   if (r.name === "works") jobs.push(Works.initList(main, signal));
   if (r.name === "detail") jobs.push(Works.initDetail(main, signal, r.id || ""));
   await Promise.all(jobs).catch((e) => console.error(e));
+  // 実績の詳細などはタイトルが決まってから送る
+  if (!signal.aborted) pageView();
   initFooter(view);
   initEdges(view);
   initNavCurrent(view, r.name, signal);

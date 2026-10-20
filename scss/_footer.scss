@@ -43,6 +43,18 @@
     letter-spacing: 0.1em;
     color: var(--gray);
   }
+  // アクセス解析（Cookie）の案内。英字の行より小さく、本文の書体で
+  &__privacy {
+    order: 3;
+    flex-basis: 100%;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    a {
+      color: inherit;
+    }
+  }
 }
 .sns {
   display: flex;
