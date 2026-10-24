@@ -133,6 +133,14 @@ async function build() {
   };
   swap('href="css/style.css"', `href="${cssFile}"`);
   swap('src="js/app.js"', `src="${jsFile}"`);
+  // 構造化データ（JSON-LD）も空白・改行を詰める。JSON の書き間違いがあればビルドを止める
+  html = html.replace(/(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/g, (_, open, json, close) => {
+    try {
+      return open + JSON.stringify(JSON.parse(json)) + close;
+    } catch (e) {
+      throw new Error(`index.html の構造化データ（JSON-LD）が正しい JSON ではありません: ${e.message}`);
+    }
+  });
   html = await minify(html, {
     collapseWhitespace: true,
     conservativeCollapse: true,
