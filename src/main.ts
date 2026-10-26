@@ -276,9 +276,18 @@ async function initView(view: HTMLElement, r: Route, signal: AbortSignal) {
   // 実績の詳細などはタイトルが決まってから送る
   if (!signal.aborted) pageView();
   initFooter(view);
+  hideExpired(view);
   initEdges(view);
   initNavCurrent(view, r.name, signal);
   Reveal.observe(view);
+}
+
+// data-until="YYYY-MM-DD" のお知らせは、その日（日本時間の0時）になったら消す
+function hideExpired(view: HTMLElement) {
+  $$<HTMLElement>("[data-until]", view).forEach((el) => {
+    const until = Date.parse(`${el.dataset.until}T00:00:00+09:00`);
+    if (!Number.isNaN(until) && Date.now() >= until) el.remove();
+  });
 }
 
 function buildView(r: Route) {

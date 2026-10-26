@@ -186,6 +186,18 @@
   .js &__cta.hero__fade {
     transition-delay: 0.47s;
   }
+  &__notice {
+    margin-top: 18px;
+    width: fit-content;
+    br {
+      @include down(sp) {
+        display: none;
+      }
+    }
+  }
+  .js &__notice.hero__fade {
+    transition-delay: 0.5s;
+  }
   @include down(sp) {
     padding-block: calc(var(--header-h) + 20px) 144px; // 次のセクションとの境目の上下の余白がそろうように
     min-height: 0;
