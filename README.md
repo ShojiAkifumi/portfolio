@@ -28,6 +28,7 @@ HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面�
 | `tools/microcms.mjs` | microCMS から実績を読み込む（ビルドの時だけ） |
 | `microcms/works-schema.json` | microCMS の API スキーマ（インポート用） |
 | `tools/capture.mjs` | 実績画像（PC・スマホのフレーム合成）を自動で作るツール |
+| `実績キャプチャ.bat`・`tools/capture-gui.ps1` | 上のツールを画面から使う Windows 用アプリ（URL を入れるとダウンロードフォルダに保存） |
 | `js/app.js`・`css/style.css`・`dist/` | ビルドで自動的に作られるファイル（直接編集しないでください。Git にも入りません） |
 
 ## 実績を追加する
@@ -35,6 +36,7 @@ HTML / SCSS / TypeScript で作ったSPA（1つの `index.html` の中で画面�
 実績は microCMS で管理しています（設定は下の「microCMS で実績を管理する」）。
 
 1. **画像を用意する**（初回だけ `npm install` を実行してください。Node.js が必要です）
+   - LP（Windows）：`実績キャプチャ.bat` をダブルクリックし、URL を入れて「撮影する」を押すと、ダウンロードフォルダに `<名前>_mockup.webp`・`<名前>_pc`・`<名前>_sp` を保存します（初回は `npx playwright install chromium` も実行してください）
    - LP：`npm run capture -- lp https://shojiakifumi.github.io/lp-xxxx/ lp-xxxx` で、公開URLからスクショを撮って `images/works/lp-xxxx/` に `mockup`（一覧用の合成画像）と `pc`・`sp`（ページ全体）を作ります
    - バナー：`npm run capture -- banner ~/Desktop/banner.png banner-xxxx` で WebP に変換します
 2. **microCMS に登録する**：実績の API で「追加」を押し、コンテンツID（URL になります）を `lp-xxxx` のように変えてから、各項目と画像を入れます

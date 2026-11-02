@@ -10,16 +10,24 @@
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const [mode, src, id] = process.argv.slice(2);
-if (!['lp', 'banner'].includes(mode) || !src || !id) {
-  console.log('使い方:\n  node tools/capture.mjs lp <URL> <id>\n  node tools/capture.mjs banner <画像ファイル> <id>');
+// --out <フォルダ> を付けると、そのフォルダに「<id>_mockup.webp」のような名前で保存します（tools/capture-gui.ps1 が使います）
+const args = process.argv.slice(2);
+const outIdx = args.indexOf('--out');
+const outOpt = outIdx >= 0 ? args.splice(outIdx, 2)[1] : null;
+const [mode, src, id] = args;
+if (!['lp', 'banner'].includes(mode) || !src || !id || (outIdx >= 0 && !outOpt)) {
+  console.log(
+    '使い方:\n  node tools/capture.mjs lp <URL> <id>\n  node tools/capture.mjs banner <画像ファイル> <id>\n  （--out <フォルダ> で保存先を変更）',
+  );
   process.exit(1);
 }
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const outDir = path.join(root, 'images', 'works', id);
-const rel = (f) => `images/works/${id}/${f}`;
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const outDir = outOpt ? path.resolve(outOpt) : path.join(root, 'images', 'works', id);
+const fileName = (f) => (outOpt ? `${id}_${f}` : f);
+const rel = (f) => (outOpt ? path.join(outDir, fileName(f)) : `images/works/${id}/${f}`);
 await mkdir(outDir, { recursive: true });
 
 const browser = await chromium.launch();
@@ -51,7 +59,7 @@ async function encode(buf, width, mime = 'image/png') {
 async function save(name, buf, width, mime) {
   const { buf: out, ext } = await encode(buf, width, mime);
   const file = `${name}.${ext}`;
-  await writeFile(path.join(outDir, file), out);
+  await writeFile(path.join(outDir, fileName(file)), out);
   console.log(`  ✓ ${rel(file)} (${Math.round(out.length / 1024)}KB)`);
   return rel(file);
 }
