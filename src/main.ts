@@ -322,7 +322,13 @@ const instant = (y: number) => window.scrollTo({ top: Math.max(0, y), left: 0, b
 // keepMenu: スマホのメニューを開いたままにしておき、切り替えのアニメーションが始まるのと同時に閉じる（前の画面は隠したまま）
 async function navigate(
   url: URL,
-  { push = true, origin = null as Point | null, y = null as number | null, keepMenu = false } = {},
+  {
+    push = true,
+    origin = null as Point | null,
+    y = null as number | null,
+    keepMenu = false,
+    still = false, // true: にじみのアニメーションをせず、その場で切り替える
+  } = {},
 ) {
   if (busy) return closeMenu();
   busy = true;
@@ -376,6 +382,7 @@ async function navigate(
       h.focus({ preventScroll: true });
     }
   };
+  if (still) return finish();
   const o = origin || { x: window.innerWidth / 2, y: window.innerHeight * 0.45 };
   InkTransition.play({
     origin: o,
@@ -434,13 +441,29 @@ function initLinks() {
     navigate(url, { origin: { x: e.clientX, y: e.clientY }, keepMenu: fromMenu });
     return fromMenu;
   }
+  // スマホ・タブレットで画面の端をスワイプして戻る・進む時は、ブラウザが自分で画面をスライドさせるので、
+  // にじみは出さずにその場で切り替える。ブラウザが知らせてくれる hasUAVisualTransition か、
+  // 「直前に画面の端に指が触れたか」で判断する
+  let edgeTouchAt = 0;
+  window.addEventListener(
+    "touchstart",
+    (e) => {
+      const x = e.touches[0]?.clientX ?? -1;
+      if (x >= 0 && (x <= 30 || x >= window.innerWidth - 30)) edgeTouchAt = performance.now();
+    },
+    { passive: true },
+  );
+  const isSwipeBack = (e: PopStateEvent) => {
+    const ua = (e as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition;
+    return ua === true || performance.now() - edgeTouchAt < 1500;
+  };
   window.addEventListener("popstate", (e) => {
     const r = route(new URL(location.href));
     if (current.route && r.name === current.route.name && r.id === current.route.id) {
       if (e.state && e.state.y != null) instant(e.state.y);
       return;
     }
-    navigate(new URL(location.href), { push: false, y: e.state ? e.state.y : null });
+    navigate(new URL(location.href), { push: false, y: e.state ? e.state.y : null, still: isSwipeBack(e) });
   });
 }
 
