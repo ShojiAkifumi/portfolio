@@ -31,6 +31,8 @@ const CATEGORY = {
   LP制作: "lp",
   HP: "hp",
   HP制作: "hp",
+  ホームページ: "hp",
+  ホームページ制作: "hp",
   バナー: "banner",
   バナー制作: "banner",
   ロゴ: "logo",
