@@ -54,7 +54,7 @@ const image = (m) => {
 };
 
 export function toWork(c) {
-  const images = Object.fromEntries(["mockup", "banner", "pc", "sp"].map((k) => [k, image(c[k])]).filter(([, v]) => v));
+  const images = Object.fromEntries(["mockup", "banner", "pc", "sp", "beforePc", "beforeSp"].map((k) => [k, image(c[k])]).filter(([, v]) => v));
   const w = {
     id: c.id,
     title: c.title || "",
@@ -82,7 +82,6 @@ export function toWork(c) {
       .filter((s) => s.label && s.value),
     result: c.result || "",
     url: c.url || "",
-    beforeUrl: c.beforeUrl || "",
     pickup: c.pickup === true,
     sortOrder: typeof c.sortOrder === "number" ? c.sortOrder : undefined,
     images,
@@ -91,7 +90,7 @@ export function toWork(c) {
   if (w.sortOrder === undefined) delete w.sortOrder;
   if (!w.specs.length) delete w.specs;
   if (!w.target.length) delete w.target;
-  for (const k of ["concept", "beforeUrl"]) if (!w[k]) delete w[k];
+  if (!w.concept) delete w.concept;
   if (!w.pickup) delete w.pickup;
   return w;
 }

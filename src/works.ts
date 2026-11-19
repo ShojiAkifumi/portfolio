@@ -23,13 +23,12 @@ export interface Work {
   specs?: { label: string; value: string }[];
   result?: string;
   url?: string;
-  beforeUrl?: string;
   // 代表作（一覧・スライダーの先頭に出し、PICK UP と表示）
   pickup?: boolean;
   // 表示順（小さいほど先。空なら表示順のある実績の後ろに、制作日の新しい順）
   sortOrder?: number;
   thumbnail?: string;
-  images?: { mockup?: string; banner?: string; pc?: string; sp?: string };
+  images?: { mockup?: string; banner?: string; pc?: string; sp?: string; beforePc?: string; beforeSp?: string };
   _i: number;
 }
 type Cat = "lp" | "hp" | "banner" | "logo" | "app";
@@ -515,18 +514,29 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
     ? `<div class="detail-visual detail-visual--banner ink-reveal"><img src="${esc(w.images?.banner)}" alt="${esc(w.title)}" width="1080" height="1080"></div>`
     : `<div class="detail-visual ink-reveal"><img src="${esc(w.images?.mockup || thumbOf(w))}" alt="${esc(w.title)}のPC・スマホ表示" width="1600" height="1040"></div>`;
 
-  const screens =
-    !isSingle(cat) && w.images && (w.images.pc || w.images.sp)
+  // PC・スマホのページ全体を、枠の中でスクロールして見せる
+  const screensHTML = (title: string, hint: string, pc?: string, sp?: string, label = "") =>
+    pc || sp
       ? `
     <section class="detail-sec" data-reveal>
-      <h2><span class="ink-dot" aria-hidden="true"></span>ページ全体</h2>
-      <p class="screen__hint">枠の中をスクロールすると、ページ全体を見られます。</p>
+      <h2><span class="ink-dot" aria-hidden="true"></span>${title}</h2>
+      <p class="screen__hint">${hint}</p>
       <div class="screens">
-        ${w.images.pc ? `<div class="screen screen--pc"><p class="screen__label">PC</p><div class="screen__frame screen__frame--pc" tabindex="0" role="region" aria-label="PC表示のスクロール領域"><img src="${esc(w.images.pc)}" alt="${esc(w.title)}のPC表示（全体）" loading="lazy"></div></div>` : ""}
-        ${w.images.sp ? `<div class="screen screen--sp"><p class="screen__label">SMARTPHONE</p><div class="screen__frame screen__frame--sp" tabindex="0" role="region" aria-label="スマホ表示のスクロール領域"><img src="${esc(w.images.sp)}" alt="${esc(w.title)}のスマホ表示（全体）" loading="lazy"></div></div>` : ""}
+        ${pc ? `<div class="screen screen--pc"><p class="screen__label">PC</p><div class="screen__frame screen__frame--pc" tabindex="0" role="region" aria-label="${label}PC表示のスクロール領域"><img src="${esc(pc)}" alt="${esc(w.title)}の${label}PC表示（全体）" loading="lazy"></div></div>` : ""}
+        ${sp ? `<div class="screen screen--sp"><p class="screen__label">SMARTPHONE</p><div class="screen__frame screen__frame--sp" tabindex="0" role="region" aria-label="${label}スマホ表示のスクロール領域"><img src="${esc(sp)}" alt="${esc(w.title)}の${label}スマホ表示（全体）" loading="lazy"></div></div>` : ""}
       </div>
     </section>`
       : "";
+  const screens = isSingle(cat)
+    ? ""
+    : screensHTML("ページ全体", "枠の中をスクロールすると、ページ全体を見られます。", w.images?.pc, w.images?.sp) +
+      screensHTML(
+        "リニューアル前",
+        "リニューアル前のページです。上の「ページ全体」と見比べてみてください。",
+        w.images?.beforePc,
+        w.images?.beforeSp,
+        "リニューアル前の",
+      );
 
   root.innerHTML = `
     <section class="page-hero">
@@ -560,7 +570,6 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
         <aside class="detail-aside" data-reveal>
           <dl>${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
           ${w.url ? `<a class="btn btn--blue" href="${esc(w.url)}" target="_blank" rel="noopener">サイトを見る<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>` : ""}
-          ${w.beforeUrl ? `<a class="btn btn--ghost" href="${esc(w.beforeUrl)}" target="_blank" rel="noopener">リニューアル前を見る<svg class="btn__arrow btn__arrow--external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>` : ""}
           <a class="btn" href="/#contact">この実績について相談する</a>
         </aside>
       </div>

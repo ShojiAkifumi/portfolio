@@ -216,15 +216,6 @@
       "initialValue": null
     },
     {
-      "fieldId": "beforeUrl",
-      "name": "リニューアル前のURL",
-      "kind": "text",
-      "description": "リニューアルの実績の時だけ",
-      "required": false,
-      "isUnique": false,
-      "initialValue": null
-    },
-    {
       "fieldId": "mockup",
       "name": "一覧用の画像（LP・HP・アプリ）",
       "kind": "media",
@@ -250,6 +241,20 @@
       "name": "スマホ表示の全体（LP・HP・アプリ）",
       "kind": "media",
       "description": null,
+      "required": false
+    },
+    {
+      "fieldId": "beforePc",
+      "name": "リニューアル前のPC表示の全体",
+      "kind": "media",
+      "description": "リニューアルの実績の時だけ（実績キャプチャで撮った pc の画像）",
+      "required": false
+    },
+    {
+      "fieldId": "beforeSp",
+      "name": "リニューアル前のスマホ表示の全体",
+      "kind": "media",
+      "description": "リニューアルの実績の時だけ（実績キャプチャで撮った sp の画像）",
       "required": false
     }
   ],
