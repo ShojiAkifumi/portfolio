@@ -215,6 +215,8 @@
     border-radius: 16px;
     border: 10px solid #2c3a52;
     background: var(--paper);
+  }
+  &__frame--pc {
     scrollbar-width: thin;
   }
   &__frame--pc {
@@ -223,6 +225,22 @@
   &__frame--sp {
     border-radius: 32px;
     border-width: 9px;
+    // スマホと同じような、細く丸いスクロールバーを枠の内側に（角の丸みにかからないよう上下を空ける）
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+      margin-block: 22px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgb(0 0 0 / 35%);
+      border-radius: 999px;
+    }
+    @supports not selector(::-webkit-scrollbar) {
+      scrollbar-width: thin;
+      scrollbar-color: rgb(0 0 0 / 35%) transparent;
+    }
     @include down(sp) {
       max-width: 340px;
       margin-inline: auto;

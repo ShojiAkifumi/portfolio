@@ -103,7 +103,6 @@ async function mockup(pcFv, spFv) {
     .base:before{content:"";position:absolute;left:50%;top:0;width:200px;height:10px;margin-left:-100px;background:#c9d2df;border-radius:0 0 12px 12px}
     .phone{position:absolute;right:70px;bottom:40px;width:300px;background:#0d1320;border-radius:48px;padding:13px;box-shadow:0 40px 70px -24px rgba(20,70,160,.55),inset 0 0 0 2px #2a3446}
     .phone img{display:block;width:100%;aspect-ratio:390/844;object-fit:cover;object-position:top;border-radius:36px}
-    .phone:before{content:"";position:absolute;left:50%;top:24px;width:84px;height:24px;margin-left:-42px;background:#0d1320;border-radius:20px;z-index:1}
   </style></head><body><div class="stage">
     <div class="laptop"><div class="lid"><img src="${b64(pcFv)}"></div><div class="base"></div></div>
     <div class="phone"><img src="${b64(spFv)}"></div>
