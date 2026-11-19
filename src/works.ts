@@ -16,11 +16,16 @@ export interface Work {
   period?: string;
   tools?: string[];
   summary?: string;
+  target?: string[];
+  concept?: string;
   purpose?: string;
   points?: string[];
   specs?: { label: string; value: string }[];
   result?: string;
   url?: string;
+  beforeUrl?: string;
+  // 代表作（一覧・スライダーの先頭に出し、PICK UP と表示）
+  pickup?: boolean;
   // 表示順（小さいほど先。空なら表示順のある実績の後ろに、制作日の新しい順）
   sortOrder?: number;
   thumbnail?: string;
@@ -53,11 +58,12 @@ function loadWorks(): Promise<Work[]> {
         return res.json();
       })
       .then((list: Omit<Work, "_i">[]) =>
-        // 表示順の小さい順 → 制作日の新しい順（同じ日付は JSON の順）
+        // 代表作 → 表示順の小さい順 → 制作日の新しい順（同じ日付は JSON の順）
         list
           .map((w, i) => ({ ...w, _i: i }))
           .sort(
             (a, b) =>
+              Number(!!b.pickup) - Number(!!a.pickup) ||
               (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity) ||
               String(b.date || "").localeCompare(String(a.date || "")) ||
               a._i - b._i,
@@ -79,6 +85,7 @@ function cardHTML(w: Work) {
       </div>
       <div class="work-card__meta">
         <p class="work-card__tags">
+          ${w.pickup ? `<span class="chip chip--pickup">PICK UP</span>` : ""}
           <span class="chip${isSingle(cat) ? " chip--banner" : ""}">${CATS[cat]}</span>
           ${w.type === "実案件" ? `<span class="chip chip--client">${esc(w.type)}</span>` : `<span class="chip chip--line">${esc(w.type || "自主制作")}</span>`}
           <span>${esc(w.industry || "")}</span>
@@ -528,6 +535,7 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
         <ol class="breadcrumb"><li><a href="/">HOME</a></li><li><a href="/works">WORKS</a></li><li aria-current="page">${esc(w.title)}</li></ol>
         <div class="detail-head">
           <p class="detail-head__tags">
+            ${w.pickup ? `<span class="chip chip--pickup">PICK UP</span>` : ""}
             <span class="chip${isSingle(cat) ? " chip--banner" : ""}">${CATS[cat]}</span>
             ${w.type === "実案件" ? `<span class="chip chip--client">${esc(w.type)}</span>` : `<span class="chip chip--line">${esc(w.type || "自主制作")}</span>`}
           </p>
@@ -541,6 +549,8 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
     <section class="section" style="padding-top:clamp(56px,7vw,96px)">
       <div class="wrap detail-body">
         <div class="detail-main">
+          ${w.target?.length ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>ターゲット</h2><ul class="targets">${w.target.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>` : ""}
+          ${w.concept ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>最初に考えたこと</h2><p>${esc(w.concept)}</p></section>` : ""}
           ${w.purpose ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>目的・課題</h2><p>${esc(w.purpose)}</p></section>` : ""}
           ${w.points?.length ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>工夫した点</h2><ol class="points">${w.points.map((p) => `<li>${esc(p)}</li>`).join("")}</ol></section>` : ""}
           ${w.specs?.length ? `<section class="detail-sec" data-reveal><h2><span class="ink-dot" aria-hidden="true"></span>デザイン仕様</h2><dl class="specs">${w.specs.map((s) => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`).join("")}</dl></section>` : ""}
@@ -550,6 +560,7 @@ async function initDetail(scope: ParentNode, signal: AbortSignal, id: string): P
         <aside class="detail-aside" data-reveal>
           <dl>${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
           ${w.url ? `<a class="btn btn--blue" href="${esc(w.url)}" target="_blank" rel="noopener">サイトを見る<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>` : ""}
+          ${w.beforeUrl ? `<a class="btn btn--ghost" href="${esc(w.beforeUrl)}" target="_blank" rel="noopener">リニューアル前を見る<svg class="btn__arrow btn__arrow--external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>` : ""}
           <a class="btn" href="/#contact">この実績について相談する</a>
         </aside>
       </div>

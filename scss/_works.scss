@@ -151,6 +151,11 @@
     font-family: var(--font-body);
     font-weight: 500;
   }
+  // 代表作
+  &--pickup {
+    background: var(--deep);
+    color: var(--paper);
+  }
   &--client {
     background: transparent;
     color: var(--deep);

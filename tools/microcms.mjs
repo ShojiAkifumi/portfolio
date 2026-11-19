@@ -71,6 +71,8 @@ export function toWork(c) {
       .map((t) => t.trim())
       .filter(Boolean),
     summary: c.summary || "",
+    target: lines(c.target),
+    concept: c.concept || "",
     purpose: c.purpose || "",
     points: lines(c.points),
     // 1行に「ラベル：値」
@@ -80,11 +82,16 @@ export function toWork(c) {
       .filter((s) => s.label && s.value),
     result: c.result || "",
     url: c.url || "",
+    beforeUrl: c.beforeUrl || "",
+    pickup: c.pickup === true,
     sortOrder: typeof c.sortOrder === "number" ? c.sortOrder : undefined,
     images,
   };
   if (!w.client) delete w.client;
   if (w.sortOrder === undefined) delete w.sortOrder;
   if (!w.specs.length) delete w.specs;
+  if (!w.target.length) delete w.target;
+  for (const k of ["concept", "beforeUrl"]) if (!w[k]) delete w[k];
+  if (!w.pickup) delete w.pickup;
   return w;
 }

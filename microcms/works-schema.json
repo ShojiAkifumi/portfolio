@@ -92,6 +92,13 @@
       "required": false
     },
     {
+      "fieldId": "pickup",
+      "name": "代表作",
+      "kind": "boolean",
+      "description": "オンにすると、実績一覧やトップのスライダーで先頭に出て「PICK UP」と表示されます",
+      "required": false
+    },
+    {
       "fieldId": "role",
       "name": "担当",
       "kind": "select",
@@ -146,6 +153,24 @@
       "initialValue": null
     },
     {
+      "fieldId": "target",
+      "name": "ターゲット",
+      "kind": "textArea",
+      "description": "1行に1つ",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "concept",
+      "name": "最初に考えたこと",
+      "kind": "textArea",
+      "description": "制作のはじめに考えた方針やテーマ",
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
       "fieldId": "purpose",
       "name": "目的・課題",
       "kind": "textArea",
@@ -186,6 +211,15 @@
       "name": "公開URL",
       "kind": "text",
       "description": null,
+      "required": false,
+      "isUnique": false,
+      "initialValue": null
+    },
+    {
+      "fieldId": "beforeUrl",
+      "name": "リニューアル前のURL",
+      "kind": "text",
+      "description": "リニューアルの実績の時だけ",
       "required": false,
       "isUnique": false,
       "initialValue": null
